@@ -9,11 +9,7 @@ void generation_vecteur(int n, int* vecteur, int nb_zero) {
     for (int i=0; i<nb_zero; i++)
         vecteur[i] = 0;
     for (int i=nb_zero; i<n; i++)
-        vecteur[i] = rand()%10;
-
-    for (int i=0; i<n; i++)
-        cout << vecteur[i] << " ";
-    cout << endl;
+        vecteur[i] = rand()%20;
 }
 
 void matrice_vecteur(int n, int* matrice, int* v1, int* v2) {

@@ -32,19 +32,19 @@ int main(int argc, char **argv)
     string name = argv[4]; // le nom du fichier pour que le processus root copie les données initiales et les résultats
 
     // Petit test pour vérifier qu'on peut avoir plusieurs threads par processus.
-#pragma omp parallel num_threads(4)
-    {
-        int id = omp_get_thread_num();
-#pragma omp critical
-        cout << "je suis le thread " << id << " pour pid=" << pid << endl;
-    }
+    // #pragma omp parallel num_threads(4)
+    //     {
+    //         int id = omp_get_thread_num();
+    // #pragma omp critical
+    //         cout << "je suis le thread " << id << " pour pid=" << pid << endl;
+    //     }
 
     // Pour mesurer le temps (géré par le processus root)
     chrono::time_point<chrono::system_clock> debut, fin;
 
-    int* matrice = new int[n * n]; // la matrice
-    int* vecteurs = new int[n * m];                 // l'ensemble des vecteurs connu uniquement par root et distribué à tous.
-    int* vecRes = new int[n]; // le vecteur résultat
+    int *matrice = new int[n * n];  // la matrice
+    int *vecteurs = new int[n * m]; // l'ensemble des vecteurs connu uniquement par root et distribué à tous.
+    int *vecRes = new int[n * m];   // les vecteurs résultats
 
     fstream f;
     if (pid == root)
@@ -83,71 +83,124 @@ int main(int argc, char **argv)
             f << endl;
         }
     }
-    
+
     // Chrono + Déclaration des fenêtres pour le processus root
     if (pid == root)
     {
         debut = chrono::system_clock::now();
-        MPI_Win_create(matrice, n * n * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &theWinMat); // déclaration de la fenêtre pour la matrice
+        MPI_Win_create(matrice, n * n * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &theWinMat);  // déclaration de la fenêtre pour la matrice
         MPI_Win_create(vecteurs, n * m * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &theWinVec); // déclaration de la fenêtre pour les vecteurs
-    } 
+    }
 
     // Déclaration des fenêtres pour les processus non-root
-    if (pid != root) {
+    if (pid != root)
+    {
         MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &theWinMat);
         MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &theWinVec);
     }
-    
+
     // // barrières pour s'assurer que les fenêtres soient créées
-    MPI_Win_fence( 0 , theWinMat);
-    MPI_Win_fence( 0 , theWinVec);
+    MPI_Win_fence(0, theWinMat);
+    MPI_Win_fence(0, theWinVec);
 
     // TODO si on est pas root récupérer les données des vecteurs d'entrées
     if (pid != root)
     {
-        //MPI_Get( void* origin_addr , int origin_count , MPI_Datatype origin_datatype , int target_rank , MPI_Aint target_disp , int target_count , MPI_Datatype target_datatype , MPI_Win win);
-        MPI_Get(vecteurs, m * n, MPI_INT, pid, 0, m * n, MPI_INT, theWinVec);
+        // MPI_Get( void* origin_addr , int origin_count , MPI_Datatype origin_datatype , int target_rank , MPI_Aint target_disp , int target_count , MPI_Datatype target_datatype , MPI_Win win);
+        MPI_Get(matrice, n * n, MPI_INT, 0, 0, n * n, MPI_INT, theWinMat);
+        // MPI_Get(vecteurs, m * n, MPI_INT, 0, 0, m * n, MPI_INT, theWinVec);
     }
 
-    MPI_Win_fence(0 , theWinVec);
+    MPI_Win_fence(0, theWinMat);
+    MPI_Win_fence(0, theWinVec);
 
-    // // cout << "Contenu des vecteurs" << endl;
-    // // cout << "Pour le pid " << pid << " j'ai les vecteurs " << endl;
-    // // for (int i = 0; i < m; i++) {
-    // //     cout << "Vecteur " << i << ": ";
-    // //     for (int j = 0; j < n; i++) {
-    // //         cout << vecteurs[i * n + j] << " ";
-    // //     }
-    // //     cout << "end";
-    // // }
+    // Full vector printer
+
+    // if (pid == root)
+    //     cout << "Contenu des vecteurs" << endl;
+
+    // MPI_Win_fence(0, theWinVec);
+
+    // for (int i = 0; i < m; i++) {
+    //     cout << "PID " << pid << " Vecteur " << i << ": ";
+    //     for (int j = 0; j < n; j++) {
+    //         cout << vecteurs[i * n + j] << " ";
+    //     }
+    //     cout << endl;
+    // }
 
     // MPI_Win_fence(0 , theWinVec);
 
-    // Dans le temps écoulé on ne s'occupe que de la partie communications et calculs
-    // (on oublie la génération des données et l'écriture des résultats sur le fichier de sortie)
+    // Only root
+
     if (pid == root)
     {
-        fin = chrono::system_clock::now();
-        chrono::duration<double> elapsed_seconds = fin - debut;
-        cout << "temps en secondes : " << elapsed_seconds.count() << endl;
+        cout << "Contenu des vecteurs" << endl;
+
+        for (int i = 0; i < m; i++)
+        {
+            cout << "PID " << pid << " Vecteur " << i << ": ";
+            for (int j = 0; j < n; j++)
+            {
+                cout << vecteurs[i * n + j] << " ";
+            }
+            cout << endl;
+        }
     }
 
-    // int *resultats;
-    // if (pid == root)
-    //     resultats = new int[m * n];
+    MPI_Win_fence(0, theWinVec);
 
-    // // A compléter également avec la récupération des résultats
+    MPI_Win winIndex;
+    int currentVecIndex = 0;
+    int *currentVec = new int[n * m];
 
+    MPI_Win_create(&currentVecIndex, 1 * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winIndex);
+
+    MPI_Win_fence(0, theWinVec);
+    MPI_Win_fence(0, winIndex);
+
+    if (pid != root)
+    {
+        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, theWinVec);
+        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, winIndex);
+
+        MPI_Get(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
+        MPI_Get(currentVec, n * m, MPI_INT, root, currentVecIndex * n, m * n, MPI_INT, theWinVec);
+        currentVecIndex++;
+        MPI_Put(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
+        cout << "Current vec index: " << currentVecIndex << " on pid " << pid << endl;
+
+        MPI_Win_unlock(root, winIndex);
+        MPI_Win_unlock(root, theWinVec);
+
+    }
+
+    MPI_Win_fence(0, winIndex);
+
+    if (pid != root)
+    {
+
+        cout << "PID " << pid << " Vecteur courrant: ";
+        for (int i = 0; i < n * m; i++)
+        {
+            cout << currentVec[i] << " ";
+        }
+        cout << endl;
+
+        // while (currentVecIndex < m) {
+        //     matrice_vecteur(n, matrice, vecteurs + currentVecIndex * n, vecRes + currentVecIndex * n);
+        // }
+    }
+
+    MPI_Win_fence(0, theWinVec);
+
+    // Dans le temps écoulé on ne s'occupe que de la partie communications et calculs
+    // (on oublie la génération des données et l'écriture des résultats sur le fichier de sortie)
     // if (pid == root)
     // {
-    //     f << "Les vecteurs" << endl;
-    //     for (int i = 0; i < m; i++)
-    //     {
-    //         for (int j = 0; j < n; j++)
-    //             f << resultats[i * n + j] << " ";
-    //         f << endl;
-    //     }
-    //     f.close();
+    //     fin = chrono::system_clock::now();
+    //     chrono::duration<double> elapsed_seconds = fin - debut;
+    //     cout << "temps en secondes : " << elapsed_seconds.count() << endl;
     // }
 
     MPI_Finalize();
