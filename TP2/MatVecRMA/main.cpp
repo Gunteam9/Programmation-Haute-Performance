@@ -154,6 +154,8 @@ int main(int argc, char **argv)
     int currentVecIndex = 0;
     int *currentVec = new int[n * m];
 
+    int constOne = 1;
+
     MPI_Win_create(&currentVecIndex, 1 * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winIndex);
 
     MPI_Win_fence(0, theWinVec);
@@ -161,22 +163,13 @@ int main(int argc, char **argv)
 
     if (pid != root) {
         while (currentVecIndex < m) {
-            // Get the currentVecIndex
-            MPI_Win_lock(MPI_LOCK_SHARED, root, 0, winIndex);
-            MPI_Get(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
-            MPI_Win_unlock(root, winIndex);
+            MPI_Get_accumulate(&constOne, 1, MPI_INT, &currentVecIndex, 1, MPI_INT, pid, 0, 1, MPI_INT, MPI_SUM, winIndex);
 
-            if (currentVecIndex >= m) {
-                MPI_Win_unlock(root, winIndex);
-                break;
-            }
-                
-            // Put one to the vec
-            MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, winIndex);
-            currentVecIndex++;
-            MPI_Put(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
-            MPI_Win_unlock(root, winIndex);
-                
+            // Get the currentVecIndex
+            // MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, winIndex);
+            // MPI_Get(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
+            // MPI_Win_unlock(root, winIndex);
+
             // Get the vec
             MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, theWinVec);
             MPI_Get(currentVec, n, MPI_INT, root, currentVecIndex * n, m * n, MPI_INT, theWinVec);
@@ -188,16 +181,46 @@ int main(int argc, char **argv)
                 cout << currentVec[i] << " ";
             }
             cout << endl;
-
         }
     }
+    
+    // if (pid != root) {
+    //     while (currentVecIndex < m) {
+    //         // Get the currentVecIndex
+    //         MPI_Win_lock(MPI_LOCK_SHARED, root, 0, winIndex);
+    //         MPI_Get(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
+    //         MPI_Win_unlock(root, winIndex);
+
+    //         if (currentVecIndex >= m) {
+    //             MPI_Win_unlock(root, winIndex);
+    //             break;
+    //         }
+
+    //         // Put one to the vec
+    //         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, winIndex);
+    //         currentVecIndex++;
+    //         MPI_Put(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
+    //         MPI_Win_unlock(root, winIndex);
+
+    //         // Get the vec
+    //         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, theWinVec);
+    //         MPI_Get(currentVec, n, MPI_INT, root, currentVecIndex * n, m * n, MPI_INT, theWinVec);
+    //         MPI_Win_unlock(root, theWinVec);
+
+    //         cout << "PID " << pid << " Current vec index " << currentVecIndex << " Vecteur courrant: ";
+    //         for (int i = 0; i < n * m; i++)
+    //         {
+    //             cout << currentVec[i] << " ";
+    //         }
+    //         cout << endl;
+    //     }
+    // }
 
     MPI_Win_fence(0, winIndex);
     MPI_Win_fence(0, theWinVec);
 
     // cout << "Current vec index in pos 1: " << currentVecIndex << " on pid " << pid << endl;
     // matrice_vecteur(n, matrice, vecteurs + currentVecIndex * n, vecRes + currentVecIndex * n);
-    
 
     // Dans le temps écoulé on ne s'occupe que de la partie communications et calculs
     // (on oublie la génération des données et l'écriture des résultats sur le fichier de sortie)
