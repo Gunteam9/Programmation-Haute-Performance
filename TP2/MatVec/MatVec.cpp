@@ -1,118 +1,176 @@
 #include <iostream>
 #include <fstream>
-#include <random>
+#include <chrono>
+
 #include <mpi.h>
+#include <omp.h>
+
+#include "fonctions.h"
 
 using namespace std;
-
-#define TAG 10
-/// \brief To compute a matrix vector product
-/// \param n the number of lines of the matrix
-/// \param m the number of vector elements
-/// \param matrix the matrix of size n x m
-/// \param vector the vector of size m
-/// \param res the result (the memory is allocated in the calling program)
-void matrix_vector_product(int n, int m, int *matrix, int *vector, int *res)
-{
-    for (int i = 0; i < n; i++)
-    {
-        res[i] = 0;
-        for (int j = 0; j < m; j++)
-            res[i] += matrix[i * m + j] * vector[j];
-    }
-}
 
 int main(int argc, char **argv)
 {
 
-    int pid, nprocs;        // The processus rank and the number of process
-    MPI_Init(&argc, &argv); // MPI context initialization
-    // From now the program is executed by all the process
-    MPI_Comm_rank(MPI_COMM_WORLD, &pid);    //to get the process rank
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs); // to get the number of process of the parallel execution
+    // Pour initialiser l'environnement MPI avec la possibilité d'utiliser des threads (OpenMP)
+    int provided;                                                  // renvoi le mode d'initialisation effectué
+    MPI_Init_thread(&argc, &argv, MPI_THREAD_MULTIPLE, &provided); // MPI_THREAD_MULITPLE chaque processus MPI peut faire appel à plusieurs threads.
 
-    int n = atoi(argv[1]);    // the size. The matrix is a n x n matrix and the vector has n elements
-    int root = atoi(argv[2]); // a particular process (usually 0) which will be the master for some tasks
+    MPI_Win theWinMat;
+    MPI_Win theWinVec;
 
-    default_random_engine re(time(0));
-    uniform_int_distribution<int> distrib{1, 10};
+    // Pour connaître son pid et le nombre de processus de l'exécution paralléle (sans les threads)
+    int pid, nprocs;
+    MPI_Comm_rank(MPI_COMM_WORLD, &pid);
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
-    int *mat;              // the matrix
-    int *vec = new int[n]; // the vector
-    int *reference;
+    int n = atoi(argv[1]); // taille de la matrice carrée
+    int m = atoi(argv[2]); // nombre de vecteurs en entrée
+
+    int root = atoi(argv[3]); // processeur root : référence pour les données
+
+    // Pour mesurer le temps (géré par le processus root)
+    chrono::time_point<chrono::system_clock> debut, fin;
+
+    int *matrice = new int[n * n];  // la matrice
+    int *vecteurs = new int[n * m]; // l'ensemble des vecteurs connu uniquement par root et distribué à tous.
+    int *vecRes = new int[n * m];   // les vecteurs résultats
+
     if (pid == root)
-    { // The unique root process will generate the initial data. It will have to distribute them
-        mat = new int[n * n];
-        // root allocates memory for the matrix and the vector. Then it initializes the elements
+    {
+        // Génération de la matrice
+        matrice = new int[n * n];
+        srand(time(NULL));
         for (int i = 0; i < n * n; i++)
-            mat[i] = distrib(re);
-        for (int i = 0; i < n; i++)
-            vec[i] = distrib(re);
-        // To check the final result, root computes also the product in sequential. But it is only for checking reasons
-        reference = new int[n];
-        matrix_vector_product(n, n, mat, vec, reference);
-    }
+            matrice[i] = rand() % 10;
 
-    // Hypothesis n is divisible by the number of process
-    // n_part is the number of lines that each process will receive
-    int n_part = n / nprocs;
-
-    // each process receives n_part lines of the matrix mat in the mat_part variable
-    // each process receives the complete vector vec in the variable vec (that is why all the process allocate memory for vec)
-    // each process needs an additional variable for the result
-    int *mat_part = new int[n_part * n];
-    int *res_part = new int[n_part];
-
-    // the initial communications to distribute the matrix and the vector
-    // for the moment only the root process has the data
-
-    // with collective communications: a collective communication = an unique function called by all the process
-    
-    MPI_Scatter(mat, n * n_part, MPI_INT, mat_part, n * n_part, MPI_INT, root, MPI_COMM_WORLD); // distribution of the matrix
-    MPI_Bcast(vec, n, MPI_INT, root, MPI_COMM_WORLD);                                           // diffusion of the vector
-
-    // each process computes its matrix vector product
-    matrix_vector_product(n_part, n, mat_part, vec, res_part);
-
-    // We want to gather the result on the root process
-    int *res;
-    if (pid == root)
-        res = new int[n];
-
-    MPI_Gather(res_part, n_part, MPI_INT, res, n_part, MPI_INT, root, MPI_COMM_WORLD);
-
-    if (pid == root)
-    {
-        bool test = true;
-        for (int i = 0; i < n; i++)
-            if (reference[i] != res[i])
-            {
-                test = false;
-                break;
-            }
-        if (test == true) {
-            cout << "the result is correct" << endl;
-            cout << "Res: ";
-            for (int i = 0; i < n; i++) {
-                cout << res[i] << ", ";
-            }
-            cout << endl;
+        // Génération des vecteurs d'entrée
+        // vecteurs = new int[m * n];
+        for (int i = 0; i < m; i++)
+        {
+            int nb_zero = rand() % (n / 2);
+            generation_vecteur(n, vecteurs + i * n, nb_zero);
         }
-        else
-            cout << "WRONG" << endl;
     }
 
+    // Chrono
+    if (pid == root)
+        debut = chrono::system_clock::now();
+
+    // Affichage de la matrice
+
+    // if (pid == root) {
+    //     cout << "Matrice: " << endl;
+    //     for (int i = 0; i < n; i++) {
+    //         for (int j = 0; j < n; j++) {
+    //             cout << matrice[i * n + j] << " ";
+    //         }
+    //         cout << endl;
+    //     }
+    // }
+
+    // Affiche des vecteurs
+
+    // if (pid == root)
+    // {
+    //     cout << "Contenu des vecteurs" << endl;
+
+    //     for (int i = 0; i < m; i++)
+    //     {
+    //         cout << "PID " << pid << " Vecteur " << i << ": ";
+    //         for (int j = 0; j < n; j++)
+    //         {
+    //             cout << vecteurs[i * n + j] << " ";
+    //         }
+    //         cout << endl;
+    //     }
+    // }
+
+    // Calcule de l'index et get pour chaque proc sauf root (le x)
+
+    int vecGetCount = pid < m % nprocs ? (m / nprocs) + 1 : m / nprocs;
+    int vecGetIndex = pid < m % nprocs ? ((m / nprocs) + 1) * pid : ((m / nprocs) + 1) * (m % nprocs) + (m / nprocs) * (pid - (m % nprocs));
+    int** localVector = new int*[vecGetCount];
+
+    // cout << "PID " << pid << " VecGetCount " << vecGetCount << " VecGetIndex " << vecGetIndex << endl;
+
+    int* sendCount = new int[nprocs];
+    int* displs = new int[nprocs];
+    for (int i = 0; i < nprocs; i++) {
+        if (i < m % nprocs) {
+            sendCount[i] = (m / nprocs + 1) * n;
+            displs[i] = (((m / nprocs) + 1) * i) * n;
+        }
+        else {
+            sendCount[i] = (m / nprocs) * n;
+            displs[i] = (((m / nprocs) + 1) * (m % nprocs) + (m / nprocs) * (i - (m % nprocs))) * n;
+        }
+    }
+    
+    // On BCast la matrice
+    MPI_Bcast(matrice, n*n, MPI_INT, root, MPI_COMM_WORLD);
+
+    // On récup les vecteurs
+    // MPI_Scatterv( const void* sendbuf , const int sendcounts[] , const int displs[] , MPI_Datatype sendtype , void* recvbuf , int recvcount , MPI_Datatype recvtype , int root , MPI_Comm comm);
+    MPI_Scatterv(vecteurs, sendCount, displs, MPI_INT, vecteurs, vecGetCount * n, MPI_INT, root, MPI_COMM_WORLD);
+
+    // Copie dans un vecteur local
+    for (int i = 0; i < vecGetCount; i++) {
+        localVector[i] = new int[n];
+        localVector[i] = vecteurs + i * n;
+    }
+
+    // Vecteur global
+
+    // cout << "Contenu des vecteurs" << endl;
+
+    // for (int i = 0; i < m; i++)
+    // {
+    //     cout << "PID " << pid << " Vector " << i << ": ";
+    //     for (int j = 0; j < n; j++)
+    //     {
+    //         cout << vecteurs[i * n + j] << " ";
+    //     }
+    //     cout << endl;
+    // }
+    
+    // Vecteur local
+
+    // for (int i = 0; i < vecGetCount; i++)
+    // {
+    //     cout << "PID " << pid << " Local Vector " << i << ": ";
+    //     for (int j = 0; j < n; j++)
+    //     {
+    //         cout << localVector[i][j] << " ";
+    //     }
+    //     cout << endl;
+    // }
+
+    // Calcul du produit matrice vecteur
+
+    // cout << "Après le calcul pour le PID " << pid << endl;
+    for (int i = 0; i < vecGetCount; i++) {
+        int* res = new int[n];
+        matrix_vector_product(n, matrice, localVector[i], res);
+
+        // Affichage
+
+        // for (int j = 0; j < n; j++) {
+        //     cout << res[j] << " ";
+        // }
+        // cout << endl;
+    }
+
+
+    // Dans le temps écoulé on ne s'occupe que de la partie communications et calculs
+    // (on oublie la génération des données et l'écriture des résultats sur le fichier de sortie)
     if (pid == root)
     {
-        delete[] mat;
-        delete[] reference;
-        delete[] res;
+        fin = chrono::system_clock::now();
+        chrono::duration<double> elapsed_seconds = fin - debut;
+        cout << "temps en secondes : " << elapsed_seconds.count() << endl;
     }
-    delete[] mat_part;
-    delete[] res_part;
-    delete[] vec;
 
     MPI_Finalize();
-
     return 0;
 }
