@@ -107,7 +107,7 @@ int main(int argc, char **argv)
         }
     }
     
-    // On BCast la matrice
+    // On Bcast la matrice
     MPI_Bcast(matrice, n*n, MPI_INT, root, MPI_COMM_WORLD);
 
     // On récup les vecteurs
