@@ -39,14 +39,6 @@ int main(int argc, char **argv)
 
     int root = atoi(argv[3]); // processeur root : référence pour les données
 
-    // Petit test pour vérifier qu'on peut avoir plusieurs threads par processus.
-    // #pragma omp parallel num_threads(4)
-    //     {
-    //         int id = omp_get_thread_num();
-    // #pragma omp critical
-    //         cout << "je suis le thread " << id << " pour pid=" << pid << endl;
-    //     }
-
     // Pour mesurer le temps (géré par le processus root)
     chrono::time_point<chrono::system_clock> debut, fin;
 
