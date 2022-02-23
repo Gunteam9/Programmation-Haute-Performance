@@ -39,8 +39,6 @@ int main(int argc, char **argv)
 
     int root = atoi(argv[3]); // processeur root : référence pour les données
 
-    string name = argv[4]; // le nom du fichier pour que le processus root copie les données initiales et les résultats
-
     // Petit test pour vérifier qu'on peut avoir plusieurs threads par processus.
     // #pragma omp parallel num_threads(4)
     //     {
@@ -56,25 +54,13 @@ int main(int argc, char **argv)
     int *vecteurs = new int[n * m]; // l'ensemble des vecteurs connu uniquement par root et distribué à tous.
     int *vecRes = new int[n * m];   // les vecteurs résultats
 
-    fstream f;
     if (pid == root)
     {
-        f.open(name, std::fstream::out);
         // Génération de la matrice
         matrice = new int[n * n];
         srand(time(NULL));
         for (int i = 0; i < n * n; i++)
             matrice[i] = rand() % 10;
-
-        // Affichage de la matrice
-        f << "Matrice" << endl;
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < n; j++)
-                f << matrice[i * n + j] << " ";
-            f << endl;
-        }
-        f << endl;
 
         // Génération des vecteurs d'entrée
         // vecteurs = new int[m * n];
@@ -82,15 +68,6 @@ int main(int argc, char **argv)
         {
             int nb_zero = rand() % (n / 2);
             generation_vecteur(n, vecteurs + i * n, nb_zero);
-        }
-
-        // Affichage des vecteurs d'entrée
-        f << "Les vecteurs" << endl;
-        for (int i = 0; i < m; i++)
-        {
-            for (int j = 0; j < n; j++)
-                f << vecteurs[i * n + j] << " ";
-            f << endl;
         }
     }
 
