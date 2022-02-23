@@ -9,6 +9,16 @@
 
 using namespace std;
 
+void matrix_vector_product(int n, int *matrix, int *vector, int *res)
+{
+    for (int i = 0; i < n; i++)
+    {
+        res[i] = 0;
+        for (int j = 0; j < n; j++)
+            res[i] += matrix[i * n + j] * vector[j];
+    }
+}
+
 int main(int argc, char **argv)
 {
 
@@ -96,7 +106,7 @@ int main(int argc, char **argv)
     if (pid != root)
     {
         MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &theWinMat);
-        MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &theWinVec);
+        MPI_Win_create(vecteurs, n * m * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &theWinVec);
     }
 
     // // barrières pour s'assurer que les fenêtres soient créées
@@ -113,6 +123,16 @@ int main(int argc, char **argv)
 
     MPI_Win_fence(0, theWinMat);
     MPI_Win_fence(0, theWinVec);
+
+    if (pid == root) {
+        cout << "Matrice: " << endl;
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                cout << matrice[i * n + j] << " ";
+            }
+            cout << endl;
+        }
+    }
 
     // Full vector printer
 
@@ -131,7 +151,7 @@ int main(int argc, char **argv)
 
     // MPI_Win_fence(0 , theWinVec);
 
-    // Only root
+    // Root
 
     if (pid == root)
     {
@@ -150,73 +170,61 @@ int main(int argc, char **argv)
 
     MPI_Win_fence(0, theWinVec);
 
-    MPI_Win winIndex;
-    int currentVecIndex = 0;
-    int *currentVec = new int[n * m];
+    // Calcule de l'index et get pour chaque proc sauf root (le x)
 
-    int constOne = 1;
+    int vecGetCount = pid < m % nprocs ? (m / nprocs) + 1 : m / nprocs;
+    int vecGetIndex = pid < m % nprocs ? ((m / nprocs) + 1) * pid : ((m / nprocs) + 1) * (m % nprocs) + (m / nprocs) * (pid - (m % nprocs));
+    int** localVector = new int*[vecGetCount];
 
-    MPI_Win_create(&currentVecIndex, 1 * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winIndex);
-
-    MPI_Win_fence(0, theWinVec);
-    MPI_Win_fence(0, winIndex);
+    // cout << "PID " << pid << " VecGetCount " << vecGetCount << " VecGetIndex " << vecGetIndex << endl;
 
     if (pid != root) {
-        while (currentVecIndex < m) {
-            MPI_Get_accumulate(&constOne, 1, MPI_INT, &currentVecIndex, 1, MPI_INT, pid, 0, 1, MPI_INT, MPI_SUM, winIndex);
-
-            // Get the currentVecIndex
-            // MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, winIndex);
-            // MPI_Get(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
-            // MPI_Win_unlock(root, winIndex);
-
-            // Get the vec
-            MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, theWinVec);
-            MPI_Get(currentVec, n, MPI_INT, root, currentVecIndex * n, m * n, MPI_INT, theWinVec);
-            MPI_Win_unlock(root, theWinVec);
-
-            cout << "PID " << pid << " Current vec index " << currentVecIndex << " Vecteur courrant: ";
-            for (int i = 0; i < n * m; i++)
-            {
-                cout << currentVec[i] << " ";
-            }
-            cout << endl;
-        }
+        MPI_Get(vecteurs, n * m, MPI_INT, root, vecGetIndex * n, vecGetCount * n, MPI_INT, theWinVec);
     }
-    
-    // if (pid != root) {
-    //     while (currentVecIndex < m) {
-    //         // Get the currentVecIndex
-    //         MPI_Win_lock(MPI_LOCK_SHARED, root, 0, winIndex);
-    //         MPI_Get(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
-    //         MPI_Win_unlock(root, winIndex);
 
-    //         if (currentVecIndex >= m) {
-    //             MPI_Win_unlock(root, winIndex);
-    //             break;
-    //         }
+    MPI_Win_fence(0, theWinVec);
 
-    //         // Put one to the vec
-    //         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, winIndex);
-    //         currentVecIndex++;
-    //         MPI_Put(&currentVecIndex, 1, MPI_INT, root, 0, 1, MPI_INT, winIndex);
-    //         MPI_Win_unlock(root, winIndex);
+    for (int i = 0; i < vecGetCount; i++) {
+        localVector[i] = new int[n];
+        localVector[i] = vecteurs + i * n;
+    }
 
-    //         // Get the vec
-    //         MPI_Win_lock(MPI_LOCK_EXCLUSIVE, root, 0, theWinVec);
-    //         MPI_Get(currentVec, n, MPI_INT, root, currentVecIndex * n, m * n, MPI_INT, theWinVec);
-    //         MPI_Win_unlock(root, theWinVec);
+    cout << "Contenu des vecteurs" << endl;
 
-    //         cout << "PID " << pid << " Current vec index " << currentVecIndex << " Vecteur courrant: ";
-    //         for (int i = 0; i < n * m; i++)
-    //         {
-    //             cout << currentVec[i] << " ";
-    //         }
-    //         cout << endl;
+    // for (int i = 0; i < m; i++)
+    // {
+    //     cout << "PID " << pid << " Vector " << i << ": ";
+    //     for (int j = 0; j < n; j++)
+    //     {
+    //         cout << vecteurs[i * n + j] << " ";
     //     }
+    //     cout << endl;
+    // }
+    
+    // for (int i = 0; i < vecGetCount; i++)
+    // {
+    //     cout << "PID " << pid << " Local Vector " << i << ": ";
+    //     for (int j = 0; j < n; j++)
+    //     {
+    //         cout << localVector[i][j] << " ";
+    //     }
+    //     cout << endl;
     // }
 
-    MPI_Win_fence(0, winIndex);
+    MPI_Win_fence(0, theWinVec);
+
+    cout << "Après le calcul pour le PID " << pid << endl;
+    for (int i = 0; i < vecGetCount; i++) {
+        int* res = new int[n];
+        matrix_vector_product(n, matrice, localVector[i], res);
+
+        for (int j = 0; j < n; j++) {
+            cout << res[j] << " ";
+        }
+        cout << endl;
+    }
+
+
     MPI_Win_fence(0, theWinVec);
 
     // cout << "Current vec index in pos 1: " << currentVecIndex << " on pid " << pid << endl;
