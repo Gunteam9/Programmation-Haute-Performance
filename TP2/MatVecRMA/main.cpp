@@ -9,16 +9,6 @@
 
 using namespace std;
 
-void matrix_vector_product(int n, int *matrix, int *vector, int *res)
-{
-    for (int i = 0; i < n; i++)
-    {
-        res[i] = 0;
-        for (int j = 0; j < n; j++)
-            res[i] += matrix[i * n + j] * vector[j];
-    }
-}
-
 int main(int argc, char **argv)
 {
 

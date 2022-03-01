@@ -51,6 +51,10 @@ int main(int argc, char **argv)
         }
     }
 
+	// Chrono
+    if (pid == root)
+        debut = chrono::system_clock::now();
+
 	MPI_Comm_spawn("esclave",		   // exécutable
 				   argv,			   // arguments à passer sur la ligne de commande
 				   nslaves,			   // nombre de processus esclave
@@ -95,15 +99,24 @@ int main(int argc, char **argv)
 
 	// Résultat
 
-	cout << "Vecteurs" << endl;
-	for (size_t i = 0; i < n; i++)
-	{
-		for (size_t j = 0; j < n; j++)
-		{
-			cout << vecteurs[i * n + j] << " ";
-		}
-		cout << endl;
-	}
+	// cout << "Vecteurs" << endl;
+	// for (size_t i = 0; i < n; i++)
+	// {
+	// 	for (size_t j = 0; j < n; j++)
+	// 	{
+	// 		cout << vecteurs[i * n + j] << " ";
+	// 	}
+	// 	cout << endl;
+	// }
+
+	// Dans le temps écoulé on ne s'occupe que de la partie communications et calculs
+    // (on oublie la génération des données et l'écriture des résultats sur le fichier de sortie)
+    if (pid == root)
+    {
+        fin = chrono::system_clock::now();
+        chrono::duration<double> elapsed_seconds = fin - debut;
+        cout << "Temps en secondes : " << elapsed_seconds.count() << endl;
+    }
 
 	MPI_Comm_free(&intercom);
 	MPI_Finalize();

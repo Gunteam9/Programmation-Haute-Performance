@@ -168,7 +168,7 @@ int main(int argc, char **argv)
     {
         fin = chrono::system_clock::now();
         chrono::duration<double> elapsed_seconds = fin - debut;
-        cout << "temps en secondes : " << elapsed_seconds.count() << endl;
+        cout << "Temps en secondes : " << elapsed_seconds.count() << endl;
     }
 
     MPI_Finalize();

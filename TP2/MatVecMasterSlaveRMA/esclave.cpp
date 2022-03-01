@@ -89,7 +89,7 @@ int main(int argc, char **argv)
         localVector[i] = tab + i * n;
     }
 
-	cout << "Après le calcul pour le PID " << pid << endl;
+	// cout << "Après le calcul pour le PID " << pid << endl;
     for (int i = 0; i < vecGetCount; i++) {
         int* res = new int[n];
         matrix_vector_product(n, matrice, localVector[i], res);
