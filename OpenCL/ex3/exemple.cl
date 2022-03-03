@@ -18,41 +18,20 @@ void stencil_line(__const int taille, __const float lambda, __global int* A, __g
     int id = get_local_id(0);
     int id2 = get_local_id(1);
 
-/*    if ((id2==0) && (i==0) && (id==0) && (j==0)) {
-        for (int k=0; k<taille; k++) {
-            for (int l = 0; l < taille; l++)
-                printf("%d ", A[k * taille + l]);
-            printf("\n");
-        }
-    }*/
-
     if ((id == 0) && (id2 == 0)) {
         for (int k = 0; k < taille; ++k) {
             ligne[0 * taille + k] = i - 1 < 0 ? A[(taille - 1) * taille + k] : A[(i - 1) * taille + k];
             ligne[1 * taille + k] = A[i * taille + k];
             ligne[2 * taille + k] = i + 1 >= taille ? A[k] : A[(i + 1) * taille + k];
-            if ((i==0)&&(j==0))
-                printf("%d ", ligne[1 * taille + k]);
         }
-        //printf("\n");
     }
 
     barrier(CLK_LOCAL_MEM_FENCE);
 
-    printf("Je suis : %d %d / %d %d elt=%d ref=%d\n",i,j,id,id2,ligne[j],A[i*taille+j]);
     float center = (1 - 4 * lambda) * ligne[1 * taille + j];
     float top = ligne[j];
     float bottom = ligne[2 * taille + j];
     float left = j - 1 < 0 ? ligne[1 * taille + taille - 1] : ligne[1 * taille + j - 1] ;
     float right = j + 1 >= taille ? ligne[1 * taille + 0]  : ligne[1 * taille + j + 1] ;
     B[i * taille + j] = center + lambda * (top + bottom + left + right);
-    printf("%f ", center + lambda * (top + bottom + left + right));
-
-//
-//        float center = (1 - 4 * lambda) * ligne[1 * taille + j];
-//        float top = i - 1 < 0 ? ligne[2 * taille + j] : ligne[j];
-//        float bottom = i + 1 >= taille ? ligne[j] : ligne[2 * taille + j];
-//        float left = j - 1 < 0 ? ligne[1 * taille + taille - 1] : ligne[1 * taille + j - 1] ;
-//        float right = j + 1 >= taille ? ligne[1 * taille + 0]  : ligne[1 * taille + j + 1] ;
-//        B[i * taille + j] = center + lambda * (top + bottom + left + right);
 }

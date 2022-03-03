@@ -17,7 +17,7 @@ using namespace std;
 // variables globales
 // taille des données (soit le vecteur ou le coté d'une matrice carrée)
 //const int taille=2048*2048;
-const int taille=4;
+const int taille=2048;
 const float lambda = 0.1f;
 // taille des données en octets Attention au type des données)
 size_t nboctets = sizeof(int)*taille*taille;
@@ -117,7 +117,7 @@ void test_CPU_omp(){
     std::chrono::time_point<std::chrono::system_clock> fin=std::chrono::system_clock::now();
     std::cout<<"Résultat CPU OpenMP"<<std::endl;
     std::cout<<"Temps execution CPU OpenMP: "<<temps(debut,fin)<<std::endl;
-    affiche_vec(B, taille);
+//    affiche_vec(B, taille);
 }
 
 void test_GPU(cl::Program programme, cl::CommandQueue queue, cl::Context contexte){
@@ -153,6 +153,7 @@ void test_GPU(cl::Program programme, cl::CommandQueue queue, cl::Context context
 }
 
 void test_GPU_line(cl::Program programme, cl::CommandQueue queue, cl::Context contexte){
+    cout << "L'exécution peut durer longtemps..." << endl;
     std::chrono::time_point<std::chrono::system_clock> debut=std::chrono::system_clock::now();
     // Création des buffers de données dans le contexte
     cl::Buffer bufferA = cl::Buffer(contexte, CL_MEM_READ_ONLY, nboctets);
@@ -171,7 +172,7 @@ void test_GPU_line(cl::Program programme, cl::CommandQueue queue, cl::Context co
 
     // création de la topologie des processeurs
     cl::NDRange global(taille, taille); // nombre total d'éléments de calcul -processing elements
-    cl::NDRange local(2, 1); // dimension des unités de calcul -compute units- c'à-dire le nombre d'éléments de calcul par unités de calcul
+    cl::NDRange local(1, 16); // dimension des unités de calcul -compute units- c'à-dire le nombre d'éléments de calcul par unités de calcul
 
     // lancement du programme en GPU
     queue.enqueueNDRangeKernel(kernel,cl::NullRange,global,local);
@@ -182,7 +183,7 @@ void test_GPU_line(cl::Program programme, cl::CommandQueue queue, cl::Context co
 
     std::cout<<"Résultat GPU line"<<std::endl;
     std::cout<<"Temps execution GPU line: "<<temps(debut,fin)<<std::endl;
-    affiche_vec(B, taille);
+//    affiche_vec(B, taille);
 }
 
 
@@ -228,12 +229,12 @@ int main(){
         init_vec(A,taille,10);
         // affichage des données initialisées
         std::cout<<"Données initialisées"<<std::endl;
-        affiche_vec(A,taille);
+//        affiche_vec(A,taille);
 //        affiche_vec(B,taille);
 
-//        test_CPU();
+        test_CPU();
         test_CPU_omp();
-//        test_GPU(programme, queue, contexte);
+        test_GPU(programme, queue, contexte);
         test_GPU_line(programme, queue, contexte);
     } catch (cl::Error err) { // Affichage des erreurs en cas de pb OpenCL
         std::cout << "Exception\n";

@@ -31,12 +31,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd018a9a-e5e4-40dd-872a-9756be4497bc" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/OpenCL.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ex1/.idea/ex1.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ex2/.idea/ex1.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ex3/.idea/ex1.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ex3/exemple.cl" beforeDir="false" afterPath="$PROJECT_DIR$/ex3/exemple.cl" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ex3/programme_hote" beforeDir="false" afterPath="$PROJECT_DIR$/ex3/programme_hote" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ex3/programme_hote.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/ex3/programme_hote.cpp" afterDir="false" />
@@ -91,7 +86,7 @@
       <workItem from="1645706021657" duration="9091000" />
       <workItem from="1646211536964" duration="6789000" />
       <workItem from="1646232669344" duration="18000" />
-      <workItem from="1646310931500" duration="2995000" />
+      <workItem from="1646310931500" duration="6655000" />
     </task>
     <servers />
   </component>
