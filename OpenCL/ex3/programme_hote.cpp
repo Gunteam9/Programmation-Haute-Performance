@@ -71,7 +71,7 @@ void affiche_vec(float* vec, int taille){
 }
 
 
-cl::Program creationProgramme(std::string nomFicSource, cl::Context contexte){
+cl::Program createProgram(std::string nomFicSource, cl::Context contexte){
   // lecture du programme source
     std::ifstream sourceFile(nomFicSource);
     std::string sourceCode(std::istreambuf_iterator <char>(sourceFile),(std::istreambuf_iterator < char >()));
