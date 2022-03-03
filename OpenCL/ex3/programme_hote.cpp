@@ -12,17 +12,18 @@
 #include <cstdlib>     
 #include <ctime>  
 
+using namespace std;
 
 // variables globales
 // taille des données (soit le vecteur ou le coté d'une matrice carrée)
 //const int taille=2048*2048;
-const int taille=2048;
+const int taille=4;
+const float lambda = 0.1f;
 // taille des données en octets Attention au type des données)
 size_t nboctets = sizeof(int)*taille*taille;
 // pointeurs vers le stockage des données en mémoire centrale
 int* A;
 int* B;
-int* C;
 
 
 // fonction permettant de récupérer le temps écoulé entre debut et fin
@@ -85,15 +86,18 @@ void test_CPU(){
     std::chrono::time_point<std::chrono::system_clock> debut=std::chrono::system_clock::now();
     for(int i = 0; i < taille; i++) {
         for(int j = 0; j < taille; j++) {
-            for(int k = 0; k < taille; k++) {
-                C[i * taille + j] += A[i * taille + k] * B[k * taille + j];
-            }
+            float center = (1 - 4 * lambda) * A[i * taille + j];
+            float top = i - 1 < 0 ? A[(taille - 1) * taille + j] : A[(i - 1) * taille + j];
+            float bottom = i + 1 >= taille ? A[0 * taille + j] : A[(i + 1) * taille + j];
+            float left = j - 1 < 0 ? A[i * taille + taille - 1] : A[i * taille + j - 1];
+            float right = j + 1 >= taille ? A[i * taille + 0] : A[i * taille + j + 1];
+            B[i * taille + j] = center + lambda * (top + bottom + left + right);
         }
     }
     std::chrono::time_point<std::chrono::system_clock> fin=std::chrono::system_clock::now();
     std::cout<<"Résultat CPU"<<std::endl;
     std::cout<<"Temps execution CPU: "<<temps(debut,fin)<<std::endl;
-//    affiche_vec(C, taille);
+//    affiche_vec(B, taille);
 }
 
 void test_CPU_omp(){
@@ -102,35 +106,35 @@ void test_CPU_omp(){
     for(int i = 0; i < taille; i++) {
 #pragma omp parallel for
         for(int j = 0; j < taille; j++) {
-#pragma omp parallel for
-            for(int k = 0; k < taille; k++) {
-                C[i * taille + j] += A[i * taille + k] * B[k * taille + j];
-            }
+            float center = (1 - 4 * lambda) * A[i * taille + j];
+            float top = i - 1 < 0 ? A[(taille - 1) * taille + j] : A[(i - 1) * taille + j];
+            float bottom = i + 1 >= taille ? A[0 * taille + j] : A[(i + 1) * taille + j];
+            float left = j - 1 < 0 ? A[i * taille + taille - 1] : A[i * taille + j - 1];
+            float right = j + 1 >= taille ? A[i * taille + 0] : A[i * taille + j + 1];
+            B[i * taille + j] = center + lambda * (top + bottom + left + right);
         }
     }
     std::chrono::time_point<std::chrono::system_clock> fin=std::chrono::system_clock::now();
     std::cout<<"Résultat CPU OpenMP"<<std::endl;
     std::cout<<"Temps execution CPU OpenMP: "<<temps(debut,fin)<<std::endl;
-//    affiche_vec(C, taille);
+    affiche_vec(B, taille);
 }
 
 void test_GPU(cl::Program programme, cl::CommandQueue queue, cl::Context contexte){
     std::chrono::time_point<std::chrono::system_clock> debut=std::chrono::system_clock::now();
     // Création des buffers de données dans le contexte
     cl::Buffer bufferA = cl::Buffer(contexte, CL_MEM_READ_ONLY, nboctets);
-    cl::Buffer bufferB = cl::Buffer(contexte, CL_MEM_READ_ONLY, nboctets);
-    cl::Buffer bufferC = cl::Buffer(contexte, CL_MEM_WRITE_ONLY, nboctets);
+    cl::Buffer bufferB = cl::Buffer(contexte, CL_MEM_WRITE_ONLY, nboctets);
 
     // Chargement des données en mémoire video
     queue.enqueueWriteBuffer(bufferA , CL_TRUE, 0, nboctets , A);
-    queue.enqueueWriteBuffer(bufferB , CL_TRUE, 0, nboctets , B);
     // creation du kernel (fonction à exécuter)
-    cl::Kernel kernel(programme,"matrice_matrice");
+    cl::Kernel kernel(programme,"stencil");
     // Attribution des paramètres de ce kernel
-    kernel.setArg(0,taille);
-    kernel.setArg(1,bufferA);
-    kernel.setArg(2,bufferB);
-    kernel.setArg(3,bufferC);
+    kernel.setArg(0, taille);
+    kernel.setArg(1, lambda);
+    kernel.setArg(2, bufferA);
+    kernel.setArg(3, bufferB);
 
     // création de la topologie des processeurs
     cl::NDRange global(taille, taille); // nombre total d'éléments de calcul -processing elements
@@ -140,46 +144,45 @@ void test_GPU(cl::Program programme, cl::CommandQueue queue, cl::Context context
     queue.enqueueNDRangeKernel(kernel,cl::NullRange,global,local);
 
     // recupération du résultat
-    queue.enqueueReadBuffer(bufferC,CL_TRUE,0,nboctets,C);
+    queue.enqueueReadBuffer(bufferB,CL_TRUE,0,nboctets,B);
     std::chrono::time_point<std::chrono::system_clock> fin=std::chrono::system_clock::now();
 
     std::cout<<"Résultat GPU"<<std::endl;
     std::cout<<"Temps execution GPU: "<<temps(debut,fin)<<std::endl;
-//    affiche_vec(C, taille);
+//    affiche_vec(B, taille);
 }
 
 void test_GPU_line(cl::Program programme, cl::CommandQueue queue, cl::Context contexte){
     std::chrono::time_point<std::chrono::system_clock> debut=std::chrono::system_clock::now();
     // Création des buffers de données dans le contexte
     cl::Buffer bufferA = cl::Buffer(contexte, CL_MEM_READ_ONLY, nboctets);
-    cl::Buffer bufferB = cl::Buffer(contexte, CL_MEM_READ_ONLY, nboctets);
-    cl::Buffer bufferC = cl::Buffer(contexte, CL_MEM_WRITE_ONLY, nboctets);
+    cl::Buffer bufferB = cl::Buffer(contexte, CL_MEM_WRITE_ONLY, nboctets);
 
     // Chargement des données en mémoire video
     queue.enqueueWriteBuffer(bufferA , CL_TRUE, 0, nboctets , A);
-    queue.enqueueWriteBuffer(bufferB , CL_TRUE, 0, nboctets , B);
     // creation du kernel (fonction à exécuter)
-    cl::Kernel kernel(programme,"matrice_matrice_line");
+    cl::Kernel kernel(programme,"stencil_line");
     // Attribution des paramètres de ce kernel
     kernel.setArg(0,taille);
-    kernel.setArg(1,bufferA);
-    kernel.setArg(2,bufferB);
-    kernel.setArg(3,bufferC);
+    kernel.setArg(1,lambda);
+    kernel.setArg(2,bufferA);
+    kernel.setArg(3,bufferB);
+    kernel.setArg(4, sizeof(int) * taille * 3, NULL);
 
     // création de la topologie des processeurs
-    cl::NDRange global(taille); // nombre total d'éléments de calcul -processing elements
-    cl::NDRange local(16); // dimension des unités de calcul -compute units- c'à-dire le nombre d'éléments de calcul par unités de calcul
+    cl::NDRange global(taille, taille); // nombre total d'éléments de calcul -processing elements
+    cl::NDRange local(2, 1); // dimension des unités de calcul -compute units- c'à-dire le nombre d'éléments de calcul par unités de calcul
 
     // lancement du programme en GPU
     queue.enqueueNDRangeKernel(kernel,cl::NullRange,global,local);
 
     // recupération du résultat
-    queue.enqueueReadBuffer(bufferC,CL_TRUE,0,nboctets,C);
+    queue.enqueueReadBuffer(bufferB,CL_TRUE,0,nboctets,B);
     std::chrono::time_point<std::chrono::system_clock> fin=std::chrono::system_clock::now();
 
     std::cout<<"Résultat GPU line"<<std::endl;
     std::cout<<"Temps execution GPU line: "<<temps(debut,fin)<<std::endl;
-//    affiche_vec(C, taille);
+    affiche_vec(B, taille);
 }
 
 
@@ -192,7 +195,6 @@ int main(){
     // création des zone de stockage de données en mémoire centrale
     A = new int[taille * taille];
     B = new int[taille * taille];
-    C = new int[taille * taille];
 
     try { // debut de la zone d'utilisation de l'API pour OpenCL
         // les plateformes
@@ -224,16 +226,15 @@ int main(){
 
         // initialisation des données sur l'hote
         init_vec(A,taille,10);
-        init_vec(B,taille,10);
         // affichage des données initialisées
-        std::cout<<" Données initialisées"<<std::endl;
-//        affiche_vec(A,taille);
+        std::cout<<"Données initialisées"<<std::endl;
+        affiche_vec(A,taille);
 //        affiche_vec(B,taille);
 
-        test_CPU();
+//        test_CPU();
         test_CPU_omp();
-        test_GPU(programme,queue,contexte);
-        test_GPU_line(programme,queue,contexte);
+//        test_GPU(programme, queue, contexte);
+        test_GPU_line(programme, queue, contexte);
     } catch (cl::Error err) { // Affichage des erreurs en cas de pb OpenCL
         std::cout << "Exception\n";
         std::cerr << "ERROR: " << err.what() << "(" << err.err() << ")" << std::endl;

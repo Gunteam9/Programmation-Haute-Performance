@@ -1,22 +1,58 @@
 __kernel
-void matrice_matrice(const int taille, __global int* A, __global int* B, __global int* C){
+void stencil(__const int taille, __const float lambda, __global int* A, __global int* B){
     int i = get_global_id(0);
     int j = get_global_id(1);
-    int tmp = 0;
-    for(int k = 0; k < taille; k++) {
-        tmp += A[i * taille + k] * B[k * taille + j];
-    }
-    C[i * taille + j] = tmp;
+
+    float center = (1 - 4 * lambda) * A[i * taille + j];
+    float top = i - 1 < 0 ? A[(taille - 1) * taille + j] : A[(i-1) * taille + j];
+    float bottom = i + 1 >= taille ? A[0 * taille + j] : A[(i+1) * taille + j];
+    float left = j - 1 < 0 ? A[i * taille + taille - 1] : A[i * taille + j - 1];
+    float right = j + 1 >= taille ? A[i * taille + 0] : A[i * taille + j + 1];
+    B[i * taille + j] = center + lambda * (top + bottom + left + right);
 }
 
 __kernel
-void matrice_matrice_line(const int taille, __global int* A, __global int* B, __global int* C){
+void stencil_line(__const int taille, __const float lambda, __global int* A, __global int* B, __local int* ligne){
     int i = get_global_id(0);
-    for (int j = 0; j < taille; ++j) {
-        int tmp = 0;
-        for(int k = 0; k < taille; k++) {
-            tmp += A[i * taille + k] * B[k * taille + j];
+    int j = get_global_id(1);
+    int id = get_local_id(0);
+    int id2 = get_local_id(1);
+
+/*    if ((id2==0) && (i==0) && (id==0) && (j==0)) {
+        for (int k=0; k<taille; k++) {
+            for (int l = 0; l < taille; l++)
+                printf("%d ", A[k * taille + l]);
+            printf("\n");
         }
-        C[i * taille + j] = tmp;
+    }*/
+
+    if ((id == 0) && (id2 == 0)) {
+        for (int k = 0; k < taille; ++k) {
+            ligne[0 * taille + k] = i - 1 < 0 ? A[(taille - 1) * taille + k] : A[(i - 1) * taille + k];
+            ligne[1 * taille + k] = A[i * taille + k];
+            ligne[2 * taille + k] = i + 1 >= taille ? A[k] : A[(i + 1) * taille + k];
+            if ((i==0)&&(j==0))
+                printf("%d ", ligne[1 * taille + k]);
+        }
+        //printf("\n");
     }
+
+    barrier(CLK_LOCAL_MEM_FENCE);
+
+    printf("Je suis : %d %d / %d %d elt=%d ref=%d\n",i,j,id,id2,ligne[j],A[i*taille+j]);
+    float center = (1 - 4 * lambda) * ligne[1 * taille + j];
+    float top = ligne[j];
+    float bottom = ligne[2 * taille + j];
+    float left = j - 1 < 0 ? ligne[1 * taille + taille - 1] : ligne[1 * taille + j - 1] ;
+    float right = j + 1 >= taille ? ligne[1 * taille + 0]  : ligne[1 * taille + j + 1] ;
+    B[i * taille + j] = center + lambda * (top + bottom + left + right);
+    printf("%f ", center + lambda * (top + bottom + left + right));
+
+//
+//        float center = (1 - 4 * lambda) * ligne[1 * taille + j];
+//        float top = i - 1 < 0 ? ligne[2 * taille + j] : ligne[j];
+//        float bottom = i + 1 >= taille ? ligne[j] : ligne[2 * taille + j];
+//        float left = j - 1 < 0 ? ligne[1 * taille + taille - 1] : ligne[1 * taille + j - 1] ;
+//        float right = j + 1 >= taille ? ligne[1 * taille + 0]  : ligne[1 * taille + j + 1] ;
+//        B[i * taille + j] = center + lambda * (top + bottom + left + right);
 }
