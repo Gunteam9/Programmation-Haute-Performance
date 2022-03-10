@@ -184,7 +184,7 @@ int main(int argc, char **argv)
         if (!fileName.empty()) {
             ofstream o;
             o.open("../" + fileName, ios::app);
-            o << "MatVec;" << elapsed_seconds.count() << ";" << endl;
+            o << "MatVecOMP;" << elapsed_seconds.count() << ";" << endl;
             o.close();
         }
     }

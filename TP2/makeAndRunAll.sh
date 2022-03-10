@@ -20,6 +20,14 @@ do
         if [ $i == 0 ]; then make; fi;
         mpirun -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
     )
+
+    # MatVecOMP
+    (
+        printf "Running MatVecOMP...\n"
+        cd MatVecOMP/
+        if [ $i == 0 ]; then make; fi;
+        mpirun -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
+    )
     
     # MatVecRMA
     (
