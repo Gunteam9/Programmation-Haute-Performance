@@ -1,6 +1,6 @@
 #!/bin/bash
 
-readonly MAT_SIZE=4096
+readonly MAT_SIZE=20000
 readonly VEC_NUMBER=12
 
 currentDate=`date +"%D %T"`
