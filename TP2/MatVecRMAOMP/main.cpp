@@ -166,7 +166,6 @@ int main(int argc, char **argv)
 		for (size_t j = 0; j < n; j++)
 			tabRes[i * n +  j] = res[j];
 
-        delete[] localVector[i];
         delete[] res;
     }
 
