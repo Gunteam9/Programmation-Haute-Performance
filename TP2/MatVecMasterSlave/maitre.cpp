@@ -24,7 +24,10 @@ int main(int argc, char **argv)
 	int n = atoi(argv[2]); // taille de la matrice carrée
 	int m = atoi(argv[3]); // nombre de vecteurs en entrée
 	int root = atoi(argv[4]); // processeur root : référence pour les données
-	string fileName = argv[5];
+    string fileName = "";
+    if (argc > 5)
+        fileName = argv[5];
+
 
 	if (nmasters > 1)
 	{
@@ -120,10 +123,12 @@ int main(int argc, char **argv)
         chrono::duration<double> elapsed_seconds = fin - debut;
         cout << "Temps en secondes : " << elapsed_seconds.count() << endl;
 
-		ofstream o;
-        o.open("../" + fileName, ios::app);
-        o << "MatVecMasteSlave;" << elapsed_seconds.count() << ";" << endl;
-        o.close();
+        if (!fileName.empty()) {
+			ofstream o;
+			o.open("../" + fileName, ios::app);
+			o << "MatVecMasteSlave;" << elapsed_seconds.count() << ";" << endl;
+			o.close();
+		}
     }
 
 	MPI_Comm_free(&intercom);
