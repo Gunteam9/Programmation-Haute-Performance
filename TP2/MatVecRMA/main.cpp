@@ -28,7 +28,9 @@ int main(int argc, char **argv)
     int m = atoi(argv[2]); // nombre de vecteurs en entrée
 
     int root = atoi(argv[3]); // processeur root : référence pour les données
-    string fileName = argv[4];
+    string fileName = "";
+    if (argc > 4)
+        fileName = argv[4];
 
     // Pour mesurer le temps (géré par le processus root)
     chrono::time_point<chrono::system_clock> debut, fin;
@@ -187,10 +189,12 @@ int main(int argc, char **argv)
         chrono::duration<double> elapsed_seconds = fin - debut;
         cout << "temps en secondes : " << elapsed_seconds.count() << endl;
 
-        ofstream o;
-        o.open("../" + fileName, ios::app);
-        o << "MatVecRMA;" << elapsed_seconds.count() << ";" << endl;
-        o.close();
+        if (!fileName.empty()) {
+            ofstream o;
+            o.open("../" + fileName, ios::app);
+            o << "MatVecRMA;" << elapsed_seconds.count() << ";" << endl;
+            o.close();
+        }
     }
 
     MPI_Finalize();
