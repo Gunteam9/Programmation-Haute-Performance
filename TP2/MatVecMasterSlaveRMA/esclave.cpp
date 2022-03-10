@@ -103,7 +103,12 @@ int main(int argc, char **argv)
 
 		for (size_t j = 0; j < n; j++)
 			tab[i * n +  j] = res[j];
+
+		delete[] res;
     }
+
+	delete[] localVector;
+	delete[] matrice;
 	
 	MPI_Win winPutRes;
 
@@ -118,7 +123,9 @@ int main(int argc, char **argv)
 
 	MPI_Win_free(&winPutRes);
 
+	delete[] tab;
 
+	MPI_Comm_free(&intercom);
 	MPI_Finalize();
 	return 0;
 }

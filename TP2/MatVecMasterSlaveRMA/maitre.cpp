@@ -37,7 +37,6 @@ int main(int argc, char **argv)
 
     int* matrice = new int[n * n];  // la matrice
     int* vecteurs = new int[n * m]; // l'ensemble des vecteurs connu uniquement par root et distribué à tous.
-    int* vecRes = new int[n * m];   // les vecteurs résultats
 
     if (pid == root)
     {
@@ -151,6 +150,9 @@ int main(int argc, char **argv)
 			o.close();
 		}
     }
+
+	delete[] matrice;
+	delete[] vecteurs;
 
 	MPI_Comm_free(&intercom);
 	MPI_Finalize();
