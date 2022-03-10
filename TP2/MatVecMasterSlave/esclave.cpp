@@ -68,11 +68,18 @@ int main(int argc, char **argv)
 
 		for (size_t j = 0; j < n; j++)
 			tab[i * n +  j] = res[j];
+
+		delete[] res;
     }
-	
+
+	delete[] localVector;
+	delete[] matrice;
 
 	MPI_Ssend(tab, vecGetCount * n, MPI_INT, root, TAG, intercom);
 
+	delete[] tab;
+
+	MPI_Comm_free(&intercom);
 	MPI_Finalize();
 	return 0;
 }

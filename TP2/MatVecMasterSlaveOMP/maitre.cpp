@@ -131,6 +131,9 @@ int main(int argc, char **argv)
 		}
     }
 
+	delete[] vecteurs;
+	delete[] matrice;
+
 	MPI_Comm_free(&intercom);
 	MPI_Finalize();
 	return 0;
