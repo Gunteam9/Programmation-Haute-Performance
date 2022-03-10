@@ -38,12 +38,10 @@ int main(int argc, char **argv)
 
     int *matrice = new int[n * n];  // la matrice
     int *vecteurs = new int[n * m]; // l'ensemble des vecteurs connu uniquement par root et distribué à tous.
-    int *vecRes = new int[n * m];   // les vecteurs résultats
 
     if (pid == root)
     {
         // Génération de la matrice
-        matrice = new int[n * n];
         srand(time(NULL));
         for (int i = 0; i < n * n; i++)
             matrice[i] = rand() % 10;
@@ -55,13 +53,6 @@ int main(int argc, char **argv)
             generation_vecteur(n, vecteurs + i * n, nb_zero);
         }
     }
-
-    // #pragma omp parallel num_threads(4)
-    // {
-    //     int id = omp_get_thread_num();
-    //     #pragma omp critical
-    //     cout << "je suis le thread " << id << " pour pid=" << pid << endl;
-    // }
 
     // Chrono
     if (pid == root)
@@ -83,11 +74,11 @@ int main(int argc, char **argv)
 
     // if (pid == root)
     // {
-    //     cout << "Contenu des vecteurs" << endl;
+    //     cout << "Contenu des vecteurs sur root" << endl;
 
     //     for (int i = 0; i < m; i++)
     //     {
-    //         cout << "PID " << pid << " Vecteur " << i << ": ";
+    //         cout << "Vecteur " << i << ": ";
     //         for (int j = 0; j < n; j++)
     //         {
     //             cout << vecteurs[i * n + j] << " ";
@@ -96,24 +87,23 @@ int main(int argc, char **argv)
     //     }
     // }
 
-    // Calcule de l'index et get pour chaque proc sauf root (le x)
 
     int vecGetCount = pid < m % nprocs ? (m / nprocs) + 1 : m / nprocs;
     int vecGetIndex = pid < m % nprocs ? ((m / nprocs) + 1) * pid : ((m / nprocs) + 1) * (m % nprocs) + (m / nprocs) * (pid - (m % nprocs));
-    int** localVector = new int*[vecGetCount];
-
-    // cout << "PID " << pid << " VecGetCount " << vecGetCount << " VecGetIndex " << vecGetIndex << endl;
+    int* localVector = new int[vecGetCount * n];
 
     int* sendCount = new int[nprocs];
     int* displs = new int[nprocs];
-    for (int i = 0; i < nprocs; i++) {
-        if (i < m % nprocs) {
-            sendCount[i] = (m / nprocs + 1) * n;
-            displs[i] = (((m / nprocs) + 1) * i) * n;
-        }
-        else {
-            sendCount[i] = (m / nprocs) * n;
-            displs[i] = (((m / nprocs) + 1) * (m % nprocs) + (m / nprocs) * (i - (m % nprocs))) * n;
+    if (pid == root) {
+        for (int i = 0; i < nprocs; i++) {
+            if (i < m % nprocs) {
+                sendCount[i] = (m / nprocs + 1) * n;
+                displs[i] = (((m / nprocs) + 1) * i) * n;
+            }
+            else {
+                sendCount[i] = (m / nprocs) * n;
+                displs[i] = (((m / nprocs) + 1) * (m % nprocs) + (m / nprocs) * (i - (m % nprocs))) * n;
+            }
         }
     }
     
@@ -122,47 +112,26 @@ int main(int argc, char **argv)
 
     // On récup les vecteurs
     // MPI_Scatterv( const void* sendbuf , const int sendcounts[] , const int displs[] , MPI_Datatype sendtype , void* recvbuf , int recvcount , MPI_Datatype recvtype , int root , MPI_Comm comm);
-    MPI_Scatterv(vecteurs, sendCount, displs, MPI_INT, vecteurs, vecGetCount * n, MPI_INT, root, MPI_COMM_WORLD);
+    MPI_Scatterv(vecteurs, sendCount, displs, MPI_INT, localVector, vecGetCount * n, MPI_INT, root, MPI_COMM_WORLD);
 
-    // Copie dans un vecteur local
-    for (int i = 0; i < vecGetCount; i++) {
-        localVector[i] = new int[n];
-        localVector[i] = vecteurs + i * n;
-    }
-
-    // Vecteur global
+    // Vecteur local
 
     // cout << "Contenu des vecteurs" << endl;
 
-    // for (int i = 0; i < m; i++)
-    // {
-    //     cout << "PID " << pid << " Vector " << i << ": ";
-    //     for (int j = 0; j < n; j++)
-    //     {
-    //         cout << vecteurs[i * n + j] << " ";
-    //     }
-    //     cout << endl;
-    // }
-    
-    // Vecteur local
-
-    // for (int i = 0; i < vecGetCount; i++)
+    // for (int i = 0; i < vecGetCount * n; i++)
     // {
     //     cout << "PID " << pid << " Local Vector " << i << ": ";
-    //     for (int j = 0; j < n; j++)
-    //     {
-    //         cout << localVector[i][j] << " ";
-    //     }
+    //     cout << localVector[i] << " ";
     //     cout << endl;
     // }
 
     // Calcul du produit matrice vecteur
 
     // cout << "Après le calcul pour le PID " << pid << endl;
+    int* res = new int[n * vecGetCount];
     #pragma omp parallel for
     for (int i = 0; i < vecGetCount; i++) {
-        int* res = new int[n];
-        matrix_vector_product(n, matrice, localVector[i], res);
+        matrix_vector_product(n, matrice, localVector, res);
 
         // Affichage
 
@@ -171,6 +140,32 @@ int main(int argc, char **argv)
         // }
         // cout << endl;
     }
+
+    delete[] matrice;
+    delete[] localVector;
+    
+    MPI_Gatherv(res, n * vecGetCount, MPI_INT, vecteurs, sendCount, displs, MPI_INT, root, MPI_COMM_WORLD);
+
+    delete[] sendCount;
+    delete[] displs;
+    delete[] res;
+
+    // Affichage des vecteurs résultats sur root
+
+    // if (pid == root)
+    // {
+    //     cout << "Contenu des vecteurs sur root" << endl;
+
+    //     for (int i = 0; i < m; i++)
+    //     {
+    //         cout << "Vecteur " << i << ": ";
+    //         for (int j = 0; j < n; j++)
+    //         {
+    //             cout << vecteurs[i * n + j] << " ";
+    //         }
+    //         cout << endl;
+    //     }
+    // }
 
 
     // Dans le temps écoulé on ne s'occupe que de la partie communications et calculs
@@ -189,6 +184,8 @@ int main(int argc, char **argv)
         }
     }
 
+    delete[] vecteurs;
+    
     MPI_Finalize();
     return 0;
 }
