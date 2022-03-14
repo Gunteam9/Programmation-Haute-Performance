@@ -11,14 +11,15 @@ fileName=${fileName/":"/"m"}
 fileName=${fileName/" "/"_"}
 touch "${fileName}"
 
-for i in {0..1}
+for i in {0..9}
 do
+    echo "################### BOUCLE n $i #####################"
     # MatVec
     (
         printf "Running MatVec...\n"
         cd MatVec/
         if [ $i == 0 ]; then make; fi;
-        mpirun -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
+        mpirun -hostfile /home/etud/o2171029/test/Programmation-Haute-Performance/TP2/liste_machines -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
     )
 
     # MatVecOMP
@@ -26,7 +27,7 @@ do
         printf "Running MatVecOMP...\n"
         cd MatVecOMP/
         if [ $i == 0 ]; then make; fi;
-        mpirun -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
+        mpirun -hostfile /home/etud/o2171029/test/Programmation-Haute-Performance/TP2/liste_machines -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
     )
     
     # MatVecRMA
@@ -34,7 +35,7 @@ do
         printf "Running MatVecRMA...\n"
         cd MatVecRMA/
         if [ $i == 0 ]; then make; fi;
-        mpirun -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
+        mpirun -hostfile /home/etud/o2171029/test/Programmation-Haute-Performance/TP2/liste_machines -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
     )
 
     # MatVecRMAOMP
@@ -42,7 +43,7 @@ do
         printf "Running MatVecRMAOMP...\n"
         cd MatVecRMAOMP/
         if [ $i == 0 ]; then make; fi;
-        mpirun -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
+        mpirun -hostfile /home/etud/o2171029/test/Programmation-Haute-Performance/TP2/liste_machines -np 3 --oversubscribe ./main $MAT_SIZE $VEC_NUMBER 0 $fileName
     )
     
     # MatVecMasterSlave
@@ -50,7 +51,7 @@ do
         printf "Running MatVecMasterSlave...\n"
         cd MatVecMasterSlave/
         if [ $i == 0 ]; then make; fi;
-        mpirun -np 1 --oversubscribe ./maitre 3 $MAT_SIZE $VEC_NUMBER 0 $fileName
+        mpirun -hostfile /home/etud/o2171029/test/Programmation-Haute-Performance/TP2/liste_machines -np 1 --oversubscribe ./maitre 3 $MAT_SIZE $VEC_NUMBER 0 $fileName
     )
 
     # MatVecMasterSlaveOMP
@@ -58,7 +59,7 @@ do
         printf "Running MatVecMasterSlaveOMP...\n"
         cd MatVecMasterSlaveOMP/
         if [ $i == 0 ]; then make; fi;
-        mpirun -np 1 --oversubscribe ./maitre 3 $MAT_SIZE $VEC_NUMBER 0 $fileName
+        mpirun -hostfile /home/etud/o2171029/test/Programmation-Haute-Performance/TP2/liste_machines -np 1 --oversubscribe ./maitre 3 $MAT_SIZE $VEC_NUMBER 0 $fileName
     )
     
     # MatVecMasterSlaveRMA
@@ -66,7 +67,7 @@ do
         printf "Running MatVecMasterSlaveRMA...\n"
         cd MatVecMasterSlaveRMA/
         if [ $i == 0 ]; then make; fi;
-        mpirun -np 1 --oversubscribe ./maitre 3 $MAT_SIZE $VEC_NUMBER 0 $fileName
+        mpirun -hostfile /home/etud/o2171029/test/Programmation-Haute-Performance/TP2/liste_machines -np 1 --oversubscribe ./maitre 3 $MAT_SIZE $VEC_NUMBER 0 $fileName
     )
 
     # MatVecMasterSlaveRMA
@@ -74,6 +75,6 @@ do
         printf "Running MatVecMasterSlaveRMAOMP...\n"
         cd MatVecMasterSlaveRMAOMP/
         if [ $i == 0 ]; then make; fi;
-        mpirun -np 1 --oversubscribe ./maitre 3 $MAT_SIZE $VEC_NUMBER 0 $fileName
+        mpirun -hostfile /home/etud/o2171029/test/Programmation-Haute-Performance/TP2/liste_machines -np 1 --oversubscribe ./maitre 3 $MAT_SIZE $VEC_NUMBER 0 $fileName
     )
 done
