@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BranchesTreeState">
+    <expand>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </expand>
+    <select />
+  </component>
+  <component name="CMakeRunConfigurationManager" shouldGenerate="true" shouldDeleteObsolete="true">
+    <generated />
+  </component>
+  <component name="CMakeSettings">
+    <configurations>
+      <configuration PROFILE_NAME="Debug" CONFIG_NAME="Debug" />
+    </configurations>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="12420a7d-e5ac-4706-9dfe-908055b43caf" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/copy" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/copy-sse" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/copy.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/max" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/max-sse" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/max-sse.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/max.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ps" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ps-sse.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/ps.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reduce" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reduce-sse" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reduce-sse.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reduce.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../OpenCL/Projet/CMakeLists.txt" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ClangdSettings">
+    <option name="formatViaClangd" value="false" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectId" id="26YnAD7SnuFNtRapb2f3LkdKLYh" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="nodejs_package_manager_path" value="npm" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="12420a7d-e5ac-4706-9dfe-908055b43caf" name="Default Changelist" comment="" />
+      <created>1647609241292</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1647609241292</updated>
+      <workItem from="1647609242359" duration="2923000" />
+      <workItem from="1647612187759" duration="84000" />
+      <workItem from="1647612283507" duration="4724000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="743" y="311" width="426" height="479" key="FileChooserDialogImpl" timestamp="1647609330758">
+      <screen x="0" y="25" width="1920" height="1055" />
+    </state>
+    <state x="743" y="311" width="426" height="479" key="FileChooserDialogImpl/0.25.1920.1055@0.25.1920.1055" timestamp="1647609330758" />
+    <state x="477" y="133" key="SettingsEditor" timestamp="1647612323776">
+      <screen x="0" y="25" width="1920" height="1055" />
+    </state>
+    <state x="477" y="133" key="SettingsEditor/0.25.1920.1055@0.25.1920.1055" timestamp="1647612323776" />
+  </component>
+</project>
