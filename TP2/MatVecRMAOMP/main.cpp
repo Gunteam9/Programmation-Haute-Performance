@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include <mpi.h>
+#include <omp.h>
 
 #include "fonctions.h"
 
@@ -150,6 +151,7 @@ int main(int argc, char **argv)
 
     // cout << "Après le calcul pour le PID " << pid << endl;
     int* tabRes = new int[n * vecGetCount];
+    #pragma omp parallel for
     for (int i = 0; i < vecGetCount; i++) {
         int* res = new int[n];
         matrix_vector_product(n, matrice, localVector[i], res);
@@ -223,7 +225,7 @@ int main(int argc, char **argv)
         if (!fileName.empty()) {
             ofstream o;
             o.open("../" + fileName, ios::app);
-            o << "MatVecRMA;" << elapsed_seconds.count() << ";" << endl;
+            o << "MatVecRMAOMP;" << elapsed_seconds.count() << ";" << endl;
             o.close();
         }
     }

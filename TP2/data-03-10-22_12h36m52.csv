@@ -1,0 +1,16 @@
+MatVec;0.442615;
+MatVecOMP;0.431187;
+MatVecRMA;0.417945;
+MatVecRMAOMP;0.438753;
+MatVecMasteSlave;2.03918;
+MatVecMasteSlaveOMP;1.98422;
+MatVecMasterSlaveRMA;0.947468;
+MatVecMasterSlaveRMAOMP;0.948641;
+MatVec;0.441219;
+MatVecOMP;0.421182;
+MatVecRMA;0.430012;
+MatVecRMAOMP;0.430829;
+MatVecMasteSlave;1.91567;
+MatVecMasteSlaveOMP;2.15828;
+MatVecMasterSlaveRMA;0.984785;
+MatVecMasterSlaveRMAOMP;0.982063;

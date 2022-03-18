@@ -6,8 +6,6 @@
 
 #include "fonctions.h"
 
-#define TAG 10
-
 using namespace std;
 
 int main(int argc, char **argv)
@@ -27,7 +25,6 @@ int main(int argc, char **argv)
     string fileName = "";
     if (argc > 5)
         fileName = argv[5];
-
 
 	if (nmasters > 1)
 	{
@@ -70,6 +67,11 @@ int main(int argc, char **argv)
 				   MPI_ERRCODES_IGNORE // tableau contenant les erreurs
 	);
 
+	MPI_Comm intracom;
+	MPI_Intercomm_merge (intercom, 0, &intracom);
+	int pid_intra;
+	MPI_Comm_rank (intracom, &pid_intra);
+
 	// cout << "Matrice" << endl;
 	// for (size_t i = 0; i < n; i++)
 	// {
@@ -81,7 +83,7 @@ int main(int argc, char **argv)
 	// }
 
 	// cout << "Vecteurs" << endl;
-	// for (size_t i = 0; i < n; i++)
+	// for (size_t i = 0; i < m; i++)
 	// {
 	// 	for (size_t j = 0; j < n; j++)
 	// 	{
@@ -90,22 +92,41 @@ int main(int argc, char **argv)
 	// 	cout << endl;
 	// }
 
-	for (size_t i = 0; i < nslaves; i++)
-	{
-		int vecGetCount = i < m % nslaves ? (m / nslaves) + 1 : m / nslaves;
-		int vecGetIndex = i < m % nslaves ? ((m / nslaves) + 1) * i : ((m / nslaves) + 1) * (m % nslaves) + (m / nslaves) * (i - (m % nslaves));
-		
-		MPI_Ssend(matrice, n*n, MPI_INT, i, TAG, intercom);
-		MPI_Ssend(vecteurs + vecGetIndex * n, vecGetCount * n, MPI_INT, i, TAG, intercom);
+	MPI_Win winGetMat;
+	MPI_Win_create(matrice, n * n * sizeof(int), sizeof(int), MPI_INFO_NULL, intracom, &winGetMat); // déclaration de la fenêtre
+	
+    MPI_Win_fence(0, winGetMat);
 
-		MPI_Status recvStatus;
-		MPI_Recv(vecteurs + vecGetIndex * n, m * n, MPI_INT, i, TAG, intercom, &recvStatus);
-	}
+	// Les slaves récup la matrice depuis cette fenetre
+
+	MPI_Win_free(&winGetMat);
+
+	MPI_Win winGetVec;
+	int maxVecGetCount = (m / nslaves) + 1;
+
+	MPI_Win_create(vecteurs, maxVecGetCount * n * sizeof(int), sizeof(int), MPI_INFO_NULL, intracom, &winGetVec); // déclaration de la fenêtre
+	
+    MPI_Win_fence(0, winGetVec);
+
+	// Les slaves récup leurs vecteur depuis cette fenetre
+
+	MPI_Win_free(&winGetVec);
+
+
+	MPI_Win winPutRes;
+	MPI_Win_create(vecteurs, m * n * sizeof(int), sizeof(int), MPI_INFO_NULL, intracom, &winPutRes);
+
+	MPI_Win_fence(0, winPutRes);
+
+	// Les slaves put leurs résultats ici
+
+	MPI_Win_free(&winPutRes);
+
 
 	// Résultat
 
 	// cout << "Vecteurs" << endl;
-	// for (size_t i = 0; i < n; i++)
+	// for (size_t i = 0; i < m; i++)
 	// {
 	// 	for (size_t j = 0; j < n; j++)
 	// 	{
@@ -125,13 +146,13 @@ int main(int argc, char **argv)
         if (!fileName.empty()) {
 			ofstream o;
 			o.open("../" + fileName, ios::app);
-			o << "MatVecMasteSlave;" << elapsed_seconds.count() << ";" << endl;
+			o << "MatVecMasterSlaveRMAOMP;" << elapsed_seconds.count() << ";" << endl;
 			o.close();
 		}
     }
 
-	delete[] vecteurs;
 	delete[] matrice;
+	delete[] vecteurs;
 
 	MPI_Comm_free(&intercom);
 	MPI_Finalize();

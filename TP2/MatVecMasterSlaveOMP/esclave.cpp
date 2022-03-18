@@ -1,6 +1,8 @@
 #include <mpi.h>
 #include <iostream>
 #include <algorithm>
+#include <omp.h>
+
 #include "fonctions.h"
 
 #define TAG 10
@@ -55,6 +57,7 @@ int main(int argc, char **argv)
     }
 
 	// cout << "Après le calcul pour le PID " << pid << endl;
+	#pragma omp parallel for
     for (int i = 0; i < vecGetCount; i++) {
         int* res = new int[n];
         matrix_vector_product(n, matrice, localVector[i], res);
@@ -74,9 +77,10 @@ int main(int argc, char **argv)
 
 	delete[] localVector;
 	delete[] matrice;
+	
 
 	MPI_Ssend(tab, vecGetCount * n, MPI_INT, root, TAG, intercom);
-
+	
 	delete[] tab;
 
 	MPI_Comm_free(&intercom);

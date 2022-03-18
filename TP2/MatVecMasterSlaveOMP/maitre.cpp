@@ -40,6 +40,7 @@ int main(int argc, char **argv)
 
     int* matrice = new int[n * n];  // la matrice
     int* vecteurs = new int[n * m]; // l'ensemble des vecteurs connu uniquement par root et distribué à tous.
+    int* vecRes = new int[n * m];   // les vecteurs résultats
 
     if (pid == root)
     {
@@ -125,7 +126,7 @@ int main(int argc, char **argv)
         if (!fileName.empty()) {
 			ofstream o;
 			o.open("../" + fileName, ios::app);
-			o << "MatVecMasteSlave;" << elapsed_seconds.count() << ";" << endl;
+			o << "MatVecMasteSlaveOMP;" << elapsed_seconds.count() << ";" << endl;
 			o.close();
 		}
     }

@@ -3,6 +3,7 @@
 #include <chrono>
 
 #include <mpi.h>
+#include <omp.h>
 
 #include "fonctions.h"
 
@@ -31,11 +32,12 @@ int main(int argc, char **argv)
     if (argc > 4)
         fileName = argv[4];
 
+
     // Pour mesurer le temps (géré par le processus root)
     chrono::time_point<chrono::system_clock> debut, fin;
 
-    int* matrice = new int[n * n];  // la matrice
-    int* vecteurs = new int[n * m]; // l'ensemble des vecteurs connu uniquement par root et distribué à tous.
+    int *matrice = new int[n * n];  // la matrice
+    int *vecteurs = new int[n * m]; // l'ensemble des vecteurs connu uniquement par root et distribué à tous.
 
     if (pid == root)
     {
@@ -52,37 +54,9 @@ int main(int argc, char **argv)
         }
     }
 
-    // Chrono + Déclaration des fenêtres pour le processus root
+    // Chrono
     if (pid == root)
-    {
         debut = chrono::system_clock::now();
-        MPI_Win_create(matrice, n * n * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &theWinMat);  // déclaration de la fenêtre pour la matrice
-        MPI_Win_create(vecteurs, n * m * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &theWinVec); // déclaration de la fenêtre pour les vecteurs
-    }
-
-    // Déclaration des fenêtres pour les processus non-root
-    if (pid != root)
-    {
-        MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &theWinMat);
-        MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &theWinVec);
-    }
-
-    // Barrières pour s'assurer que les fenêtres soient créées
-    MPI_Win_fence(0, theWinMat);
-    MPI_Win_fence(0, theWinVec);
-
-    // On récup la matrice
-    if (pid != root)
-    {
-        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, theWinMat);
-        MPI_Get(matrice, n * n, MPI_INT, 0, 0, n * n, MPI_INT, theWinMat);
-        MPI_Win_unlock(0, theWinMat);
-    }
-
-    MPI_Win_free(&theWinMat);
-
-    // MPI_Win_fence(0, theWinMat);
-    // MPI_Win_fence(0, theWinVec);
 
     // Affichage de la matrice
 
@@ -100,7 +74,7 @@ int main(int argc, char **argv)
 
     // if (pid == root)
     // {
-    //     cout << "Contenu des vecteurs" << endl;
+    //     cout << "Contenu des vecteurs sur root" << endl;
 
     //     for (int i = 0; i < m; i++)
     //     {
@@ -113,85 +87,70 @@ int main(int argc, char **argv)
     //     }
     // }
 
-    // Calcule de l'index et get pour chaque proc sauf root (le x)
 
     int vecGetCount = pid < m % nprocs ? (m / nprocs) + 1 : m / nprocs;
     int vecGetIndex = pid < m % nprocs ? ((m / nprocs) + 1) * pid : ((m / nprocs) + 1) * (m % nprocs) + (m / nprocs) * (pid - (m % nprocs));
-    int** localVector = new int*[vecGetCount];
+    int* localVector = new int[vecGetCount * n];
+
+    int* sendCount = new int[nprocs];
+    int* displs = new int[nprocs];
+    if (pid == root) {
+        for (int i = 0; i < nprocs; i++) {
+            if (i < m % nprocs) {
+                sendCount[i] = (m / nprocs + 1) * n;
+                displs[i] = (((m / nprocs) + 1) * i) * n;
+            }
+            else {
+                sendCount[i] = (m / nprocs) * n;
+                displs[i] = (((m / nprocs) + 1) * (m % nprocs) + (m / nprocs) * (i - (m % nprocs))) * n;
+            }
+        }
+    }
+    
+    // On Bcast la matrice
+    MPI_Bcast(matrice, n*n, MPI_INT, root, MPI_COMM_WORLD);
 
     // On récup les vecteurs
-    if (pid != root) {
-        MPI_Win_lock(MPI_LOCK_EXCLUSIVE, 0, 0, theWinVec);
-        MPI_Get(vecteurs, n * m, MPI_INT, root, vecGetIndex * n, vecGetCount * n, MPI_INT, theWinVec);
-	    MPI_Win_unlock(0, theWinVec);
-    }
-
-    MPI_Win_free(&theWinVec);
-
-    // Copie dans un vecteur local
-    for (int i = 0; i < vecGetCount; i++) {
-        localVector[i] = new int[n];
-        localVector[i] = vecteurs + i * n;
-    }
+    // MPI_Scatterv( const void* sendbuf , const int sendcounts[] , const int displs[] , MPI_Datatype sendtype , void* recvbuf , int recvcount , MPI_Datatype recvtype , int root , MPI_Comm comm);
+    MPI_Scatterv(vecteurs, sendCount, displs, MPI_INT, localVector, vecGetCount * n, MPI_INT, root, MPI_COMM_WORLD);
 
     // Vecteur local
 
-    // for (int i = 0; i < vecGetCount; i++)
+    // cout << "Contenu des vecteurs" << endl;
+
+    // for (int i = 0; i < vecGetCount * n; i++)
     // {
     //     cout << "PID " << pid << " Local Vector " << i << ": ";
-    //     for (int j = 0; j < n; j++)
-    //     {
-    //         cout << localVector[i][j] << " ";
-    //     }
+    //     cout << localVector[i] << " ";
     //     cout << endl;
     // }
 
     // Calcul du produit matrice vecteur
 
     // cout << "Après le calcul pour le PID " << pid << endl;
-    int* tabRes = new int[n * vecGetCount];
+    int* res = new int[n * vecGetCount];
+    #pragma omp parallel for
     for (int i = 0; i < vecGetCount; i++) {
-        int* res = new int[n];
-        matrix_vector_product(n, matrice, localVector[i], res);
+        matrix_vector_product(n, matrice, localVector, res);
 
         // Affichage
-        // cout << "Res on PID " << pid << ": ";
+
         // for (int j = 0; j < n; j++) {
         //     cout << res[j] << " ";
         // }
         // cout << endl;
-
-		for (size_t j = 0; j < n; j++)
-			tabRes[i * n +  j] = res[j];
-
-        delete[] res;
     }
 
-    delete[] localVector;
     delete[] matrice;
+    delete[] localVector;
+    
+    MPI_Gatherv(res, n * vecGetCount, MPI_INT, vecteurs, sendCount, displs, MPI_INT, root, MPI_COMM_WORLD);
 
-    int* vecRes = new int[m * n];
+    delete[] sendCount;
+    delete[] displs;
+    delete[] res;
 
-    MPI_Win winVecRes;
-
-    if (pid == root)
-        MPI_Win_create(vecRes, m * n * sizeof(int), sizeof(int), MPI_INFO_NULL, MPI_COMM_WORLD, &winVecRes);
-    else
-        MPI_Win_create(NULL, 0, 1, MPI_INFO_NULL, MPI_COMM_WORLD, &winVecRes);
-
-    MPI_Win_fence(0, winVecRes);
-
-    if (pid == root) {
-        for (size_t i = 0; i < vecGetCount * n; i++)
-			vecRes[i] = tabRes[i];
-    } 
-    else {
-        MPI_Win_lock(MPI_LOCK_SHARED, 0, 0, winVecRes);
-        MPI_Put(tabRes, vecGetCount * n, MPI_INT, root, vecGetIndex * n, m * n, MPI_INT, winVecRes);
-        MPI_Win_unlock(0, winVecRes);
-    }
-
-    MPI_Win_free(&winVecRes);
+    // Affichage des vecteurs résultats sur root
 
     // if (pid == root)
     // {
@@ -199,17 +158,14 @@ int main(int argc, char **argv)
 
     //     for (int i = 0; i < m; i++)
     //     {
-    //         cout << "Vec Res " << i << ": ";
+    //         cout << "Vecteur " << i << ": ";
     //         for (int j = 0; j < n; j++)
     //         {
-    //             cout << vecRes[i * n + j] << " ";
+    //             cout << vecteurs[i * n + j] << " ";
     //         }
     //         cout << endl;
     //     }
     // }
-
-    delete[] vecRes;
-    delete[] tabRes;
 
 
     // Dans le temps écoulé on ne s'occupe que de la partie communications et calculs
@@ -223,11 +179,13 @@ int main(int argc, char **argv)
         if (!fileName.empty()) {
             ofstream o;
             o.open("../" + fileName, ios::app);
-            o << "MatVecRMA;" << elapsed_seconds.count() << ";" << endl;
+            o << "MatVecOMP;" << elapsed_seconds.count() << ";" << endl;
             o.close();
         }
     }
 
+    delete[] vecteurs;
+    
     MPI_Finalize();
     return 0;
 }
