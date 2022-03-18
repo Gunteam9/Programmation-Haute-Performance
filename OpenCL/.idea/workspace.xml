@@ -33,17 +33,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="dd018a9a-e5e4-40dd-872a-9756be4497bc" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/Projet/.idea/ex1.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Projet/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Projet/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Projet/CMakeLists.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Projet/data.txt" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Projet/exemple.cl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Projet/programme_hote" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Projet/programme_hote.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/OpenCL.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/OpenCL.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ex3/programme_hote.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/ex3/programme_hote.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,9 +74,9 @@
     <property name="settings.editor.selected.configurable" value="preferences.fileTypes" />
   </component>
   <component name="RunManager">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
     <configuration name="main" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="Projet" TARGET_NAME="main" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="Projet" RUN_TARGET_NAME="main">
@@ -113,6 +103,7 @@
       <workItem from="1646211536964" duration="6789000" />
       <workItem from="1646232669344" duration="18000" />
       <workItem from="1646310931500" duration="9399000" />
+      <workItem from="1646655652844" duration="71000" />
     </task>
     <servers />
   </component>
@@ -143,9 +134,10 @@
       <screen x="0" y="25" width="1920" height="1055" />
     </state>
     <state x="719" y="423" width="473" height="254" key="ANALYSIS_DLG_com.intellij.analysis.BaseAnalysisAction$1/0.25.1920.1055@0.25.1920.1055" timestamp="1645613599914" />
-    <state x="743" y="311" width="426" height="479" key="FileChooserDialogImpl" timestamp="1646320261760">
-      <screen x="0" y="25" width="1920" height="1055" />
+    <state x="619" y="262" width="426" height="479" key="FileChooserDialogImpl" timestamp="1646655721008">
+      <screen x="0" y="25" width="1600" height="875" />
     </state>
+    <state x="619" y="262" key="FileChooserDialogImpl/0.25.1600.875@0.25.1600.875" timestamp="1646655721008" />
     <state x="743" y="311" width="426" height="479" key="FileChooserDialogImpl/0.25.1920.1055@0.25.1920.1055" timestamp="1646320261760" />
     <state x="482" y="276" key="SettingsEditor" timestamp="1646312622846">
       <screen x="0" y="25" width="1920" height="1055" />
