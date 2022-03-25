@@ -13,7 +13,9 @@ int main(void) {
     float* array = (float*) _mm_malloc(sizeof(float) * SIZE, 16);
 
     srand(time(NULL));
-
+    float *A = malloc(dim * dim * sizeof(float));
+    float *B = malloc(dim * dim * sizeof(float));
+    float *C = malloc(dim * dim * sizeof(float));
     for (int i = 0; i < SIZE; ++i) {
         array[i]  = rand() / ((float) RAND_MAX);
     }

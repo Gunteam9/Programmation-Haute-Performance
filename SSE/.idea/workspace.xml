@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="BranchesTreeState">
     <expand>
       <path>
@@ -28,21 +31,36 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="12420a7d-e5ac-4706-9dfe-908055b43caf" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/copy" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/copy-sse" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/copy.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/max" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/max-sse" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/max-sse.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/max.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ps" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ps-sse.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/ps.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/reduce" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/reduce-sse" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/reduce-sse.c" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/reduce.c" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../OpenCL/Projet/CMakeLists.txt" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/CM.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP1/addVec" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP1/addVec-sse" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP1/addVec-sse.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP1/addVec.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP1/maj" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP1/maj-sse" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP1/maj-sse.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP1/maj.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP2/SSE-TP2.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP2/matmul" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/TP2/matmul.c" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/sse-tp2.zip" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/copy" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/copy" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/copy-sse" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/copy-sse" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/copy-sse.c" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/copy-sse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/copy.c" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/copy.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/max" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max-sse" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/max-sse" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max-sse.c" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/max-sse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/max.c" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/max.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/ps" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps-sse" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/ps-sse" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps-sse.c" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/ps-sse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ps.c" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/ps.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reduce" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/reduce" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reduce-sse" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/reduce-sse" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reduce-sse.c" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/reduce-sse.c" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reduce.c" beforeDir="false" afterPath="$PROJECT_DIR$/TP1/reduce.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,19 +86,20 @@
     <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
     <property name="cf.first.check.clang-format" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/TP1" />
     <property name="nodejs_package_manager_path" value="npm" />
     <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/TP1" />
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="GradleAppRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
+    <configuration default="true" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" PASS_PARENT_ENVS_2="true">
       <method v="2">
-        <option name="com.jetbrains.cidr.cpp.gradle.execution.GradleNativeBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
+        <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
       </method>
     </configuration>
   </component>
@@ -94,7 +113,10 @@
       <updated>1647609241292</updated>
       <workItem from="1647609242359" duration="2923000" />
       <workItem from="1647612187759" duration="84000" />
-      <workItem from="1647612283507" duration="4724000" />
+      <workItem from="1647612283507" duration="5606000" />
+      <workItem from="1647952360335" duration="44000" />
+      <workItem from="1648199145772" duration="7618000" />
+      <workItem from="1648210357185" duration="12746000" />
     </task>
     <servers />
   </component>
@@ -117,13 +139,22 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="743" y="311" width="426" height="479" key="FileChooserDialogImpl" timestamp="1647609330758">
+    <state x="704" y="345" width="503" height="410" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1648218594134">
       <screen x="0" y="25" width="1920" height="1055" />
     </state>
+    <state x="704" y="345" width="503" height="410" key="#com.intellij.fileTypes.FileTypeChooser/0.25.1920.1055@0.25.1920.1055" timestamp="1648218594134" />
+    <state x="495" y="296" width="319" height="454" key="FileChooserDialogImpl" timestamp="1647952401911">
+      <screen x="0" y="25" width="1280" height="999" />
+    </state>
+    <state x="495" y="296" width="319" height="454" key="FileChooserDialogImpl/0.25.1280.999@0.25.1280.999" timestamp="1647952401911" />
     <state x="743" y="311" width="426" height="479" key="FileChooserDialogImpl/0.25.1920.1055@0.25.1920.1055" timestamp="1647609330758" />
     <state x="477" y="133" key="SettingsEditor" timestamp="1647612323776">
       <screen x="0" y="25" width="1920" height="1055" />
     </state>
     <state x="477" y="133" key="SettingsEditor/0.25.1920.1055@0.25.1920.1055" timestamp="1647612323776" />
+    <state x="623" y="258" width="672" height="678" key="search.everywhere.popup" timestamp="1648216197044">
+      <screen x="0" y="25" width="1920" height="1055" />
+    </state>
+    <state x="623" y="258" width="672" height="678" key="search.everywhere.popup/0.25.1920.1055@0.25.1920.1055" timestamp="1648216197044" />
   </component>
 </project>
