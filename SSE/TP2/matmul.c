@@ -4,7 +4,7 @@
 #include <immintrin.h>
 #include "omp.h"
 
-const size_t dim = 4;
+const size_t dim = 2048;
 const size_t sse_block_size_float = 4;
 
 void printer(float *A, float *B, float *C, const size_t dim) {
@@ -77,8 +77,37 @@ void mul_naive_sse_style(float *A, float *B, float *res, const size_t dim) {
     }
 }
 
+void mul_naive_sse_style_omp(float *A, float *B, float *res, const size_t dim) {
+#pragma omp parallel for collapse(2)
+    for (int i = 0; i < dim; ++i) {
+        for (int k = 0; k < dim; ++k) {
+            for (int j = 0; j < dim; ++j) {
+                res[i * dim + j] += A[i * dim + k] * B[k * dim + j];
+            }
+        }
+    }
+}
+
 
 void mul_sse(float *A, float *B, float *res, const size_t dim) {
+    for (size_t i = 0; i < dim; ++i) {
+        for (size_t k = 0; k < dim; ++k) {
+            __m128 r0 = _mm_set1_ps(A[i * dim + k]);
+            for (size_t j = 0; j < dim; j+=sse_block_size_float) {
+                __m128 r1 = _mm_load_ps(B + k * dim + j);
+                __m128 r2 = _mm_mul_ps(r0, r1);
+
+                __m128 r3 = _mm_load_ps(res + i * dim + j);
+                __m128 r4 = _mm_add_ps(r2, r3);
+                _mm_store_ps(res + i * dim + j, r4);
+
+            }
+        }
+    }
+}
+
+void mul_sse_omp(float *A, float *B, float *res, const size_t dim) {
+#pragma omp parallel for collapse(2)
     for (size_t i = 0; i < dim; ++i) {
         for (size_t k = 0; k < dim; ++k) {
             __m128 r0 = _mm_set1_ps(A[i * dim + k]);
@@ -126,16 +155,16 @@ int main() {
     float *C = (float*) _mm_malloc(dim * dim * sizeof(float), 16);
 
     for (size_t i = 0; i < dim * dim; i++) {
-        A[i] = (int) (rand() / ((float) RAND_MAX / 10));
-        B[i] = (int) (rand()/ ((float) RAND_MAX / 10));
+        A[i] = (rand() / ((float) RAND_MAX / 10));
+        B[i] = (rand()/ ((float) RAND_MAX / 10));
         C[i] = 0;
     }
 
-    mul_sse(A, B, C, dim);
+    mul_sse_omp(A, B, C, dim);
 
-    check(A, B, C, dim);
+    //check(A, B, C, dim);
 
-    printer(A, B, C, dim);
+    //printer(A, B, C, dim);
 
     _mm_free(A);
     _mm_free(B);
