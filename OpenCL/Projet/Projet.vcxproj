@@ -117,7 +117,7 @@
     <ClCompile Include="programme_hote.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="exemple.cl" />
+    <None Include="ocl.cl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

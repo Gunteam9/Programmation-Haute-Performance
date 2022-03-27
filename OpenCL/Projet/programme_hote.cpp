@@ -238,6 +238,8 @@ void test_CPU() {
 
 	print_dir(out_dir, nx, ny);
 
+	delete[] out_dir;
+
 	int cmpt = 0;
 
 	while (cmpt < nx * ny) {
@@ -252,6 +254,7 @@ void test_CPU() {
 						if (neightbor->hasFinalValue) {
 							cell_data[i * nx + j]->value += neightbor->value;
 							cell_data[i * nx + j]->source.erase(cell_data[i * nx + j]->source.begin() + k);
+							delete neightbor;
 						}
 					}
 
@@ -356,6 +359,8 @@ void test_CPU_omp() {
 
 	print_dir(out_dir, nx, ny);
 
+	delete[] out_dir;
+
 	int cmpt = 0;
 
 	while (cmpt < nx * ny) {
@@ -370,6 +375,7 @@ void test_CPU_omp() {
 						if (neightbor->hasFinalValue) {
 							cell_data[i * nx + j]->value += neightbor->value;
 							cell_data[i * nx + j]->source.erase(cell_data[i * nx + j]->source.begin() + k);
+							delete neightbor;
 						}
 					}
 
@@ -393,35 +399,48 @@ void test_CPU_omp() {
 
 void test_GPU(const cl::Program& program, const cl::CommandQueue& queue, const cl::Context& context) {
 	chrono::time_point<chrono::system_clock> start = chrono::system_clock::now();
-	const size_t byteSize = sizeof(float) * nx * ny;
+	const size_t byteSizeBufferA = sizeof(float) * nx * ny;
+	//const size_t byteSizeBufferB = sizeof(int) * nx * ny;
 	// Création des buffers de données dans le context
-	cl::Buffer bufferA = cl::Buffer(context, CL_MEM_READ_ONLY, byteSize);
-	cl::Buffer bufferB = cl::Buffer(context, CL_MEM_WRITE_ONLY, byteSize);
+	cl::Buffer bufferA = cl::Buffer(context, CL_MEM_READ_ONLY, byteSizeBufferA);
+	cl::Buffer bufferB = cl::Buffer(context, CL_MEM_WRITE_ONLY, byteSizeBufferA);
 
 	// Chargement des données en mémoire video
-	queue.enqueueWriteBuffer(bufferA, CL_TRUE, 0, byteSize, inputMat);
+	queue.enqueueWriteBuffer(bufferA, CL_TRUE, 0, byteSizeBufferA, inputMat);
 	// creation du kernel (fonction à exécuter)
-	cl::Kernel kernel(program, "stencil");
+	cl::Kernel kernel(program, "test_neighbors");
 	// Attribution des paramètres de ce kernel
 	kernel.setArg(0, nx);
 	kernel.setArg(1, ny);
 	kernel.setArg(2, bufferA);
 	kernel.setArg(3, bufferB);
 
+
 	// création de la topologie des processeurs
 	cl::NDRange global(nx, ny); // nombre total d'éléments de calcul -processing elements
-	cl::NDRange local(16, 16); // dimension des unités de calcul -compute units- c'à-dire le nombre d'éléments de calcul par unités de calcul
+	cl::NDRange local(4, 4); // dimension des unités de calcul -compute units- c'à-dire le nombre d'éléments de calcul par unités de calcul
 
 	// lancement du programme en GPU
 	queue.enqueueNDRangeKernel(kernel, cl::NullRange, global, local);
 
 	// recupération du résultat
-	queue.enqueueReadBuffer(bufferB, CL_TRUE, 0, byteSize, outputMat);
+	float* out = new float[nx * ny];
+	queue.enqueueReadBuffer(bufferB, CL_TRUE, 0, byteSizeBufferA, out);
+
+	for (size_t i = 0; i < nx; i++)
+	{
+		for (size_t j = 0; j < ny; j++)
+		{
+			cout << out[i * nx + j] << " ";
+		}
+		cout << endl;
+	}
+
 	chrono::time_point<chrono::system_clock> end = chrono::system_clock::now();
 
 	cout << "Résultat GPU" << endl;
+	//print_res(outputMat, nx, ny);
 	cout << "Temps execution GPU: " << calcTime(start, end) << endl;
-	//printData(outputMat, nx, ny);
 }
 
 int main() {
@@ -443,7 +462,7 @@ int main() {
 		cl::Context context(devices);
 
 		// création du programme dans le contexte (voir code fonction)
-		cl::Program program = createProgram("exemple.cl", context);
+		cl::Program program = createProgram("ocl.cl", context);
 		// compilation du programme
 		try {
 			program.build(devices);
@@ -468,12 +487,13 @@ int main() {
 
 		test_CPU();
 		test_CPU_omp();
-		//        test_GPU(program, queue, context);
+		test_GPU(program, queue, context);
 		system("pause");
 	}
 	catch (cl::Error& err) { // Affichage des erreurs en cas de pb OpenCL
 		cout << "Exception\n";
 		cerr << "ERROR: " << err.what() << "(" << err.err() << ")" << endl;
+		system("pause");
 		return EXIT_FAILURE;
 	}
 }

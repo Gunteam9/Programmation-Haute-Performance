@@ -20,7 +20,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="exemple.cl">
+    <None Include="ocl.cl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
