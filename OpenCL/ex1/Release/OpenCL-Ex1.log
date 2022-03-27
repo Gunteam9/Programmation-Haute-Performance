@@ -1,0 +1,2 @@
+﻿LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/OPT:ICF' specification
+  OpenCL-Ex1.vcxproj -> C:\Users\romai\Documents\Cours\M2\Programmation-Haute-Performance\OpenCL\ex1\Release\OpenCL-Ex1.exe
