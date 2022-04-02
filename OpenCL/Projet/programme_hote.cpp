@@ -5,14 +5,15 @@
 
 #include <vector>
 #include <iostream>
-#include <fstream>
 #include <chrono>
 #include <cstdlib>
-#include <ctime>  
 #include <map>
+
+#include "functions.h"
 
 using namespace std;
 
+// Disable CS Error for Visual Studio
 #pragma warning(disable : 26451 6031)
 
 int nx;
@@ -24,63 +25,7 @@ int nodata;
 float* inputMat;
 float* outputMat;
 
-enum class Direction {
-	TOP_LEFT,
-	TOP_CENTER,
-	TOP_RIGHT,
-	CENTER_LEFT,
-	CENTER_RIGHT,
-	BOTTOM_LEFT,
-	BOTTOM_CENTER,
-	BOTTOM_RIGHT,
-	NONE
-};
-
-struct cellData {
-	vector<cellData*> source;
-	bool hasFinalValue = false;
-	float value = 0;
-};
-
-string direction_arrow_converter(Direction dir) {
-	switch (dir)
-	{
-	case Direction::TOP_LEFT:
-		return "↖";
-		break;
-	case Direction::TOP_CENTER:
-		return "↑";
-		break;
-	case Direction::TOP_RIGHT:
-		return "↗";
-		break;
-	case Direction::CENTER_LEFT:
-		return "←";
-		break;
-	case Direction::CENTER_RIGHT:
-		return "→";
-		break;
-	case Direction::BOTTOM_LEFT:
-		return "↙";
-		break;
-	case Direction::BOTTOM_CENTER:
-		return "↓";
-		break;
-	case Direction::BOTTOM_RIGHT:
-		return "↘";
-		break;
-	case Direction::NONE:
-		return " ";
-		break;
-	}
-}
-
-// fonction permettant de récupérer le temps écoulé entre debut et fin
-double calcTime(chrono::time_point<chrono::system_clock> start, chrono::time_point<chrono::system_clock> end) {
-	chrono::duration<double> tps = end - start;
-	return tps.count();
-}
-
+// Load the data in file
 void loadData() {
 	FILE* fp = fopen("data.txt", "r");
 	if (fp == nullptr) {
@@ -107,42 +52,6 @@ void loadData() {
 		}
 	}
 	fclose(fp);
-}
-
-void print_dir(const string* vec, const int xSize, const int ySize) {
-	for (int i = 0; i < xSize; i++) {
-		for (int j = 0; j < ySize; j++) {
-			cout << vec[i * xSize + j] << " ";
-		}
-		cout << endl;
-	}
-	cout << endl;
-}
-
-void print_dir(const Direction* vec, const int xSize, const int ySize) {
-	ofstream o;
-	o.open("out.txt");
-	for (int i = 0; i < xSize; i++) {
-		for (int j = 0; j < ySize; j++) {
-			o << direction_arrow_converter(vec[i * xSize + j]) << " ";
-		}
-		o << endl;
-	}
-	o.close();
-	cout << endl;
-}
-
-void print_res(const float* vec, const int xSize, const int ySize) {
-	for (int i = 0; i < xSize; i++) {
-		for (int j = 0; j < ySize; j++) {
-			if (vec[i * xSize + j] < 10)
-				cout << "0" << vec[i * xSize + j] << " ";
-			else
-				cout << vec[i * xSize + j] << " ";
-		}
-		cout << endl;
-	}
-	cout << endl;
 }
 
 cl::Program createProgram(std::string sourceFileName, cl::Context context) {
@@ -400,16 +309,21 @@ void test_CPU_omp() {
 void test_GPU(const cl::Program& program, const cl::CommandQueue& queue, const cl::Context& context) {
 	chrono::time_point<chrono::system_clock> start = chrono::system_clock::now();
 	const size_t byteSizeBufferA = sizeof(float) * nx * ny;
-	//const size_t byteSizeBufferB = sizeof(int) * nx * ny;
+	const size_t byteSizeBufferB = sizeof(float) * nx * ny * 2;
+	float* dir = new float[nx * ny * 2]{ 0 };
+	vector<cellData*> dir_cell_data;
 	// Création des buffers de données dans le context
 	cl::Buffer bufferA = cl::Buffer(context, CL_MEM_READ_ONLY, byteSizeBufferA);
-	cl::Buffer bufferB = cl::Buffer(context, CL_MEM_WRITE_ONLY, byteSizeBufferA);
+	cl::Buffer bufferB = cl::Buffer(context, CL_MEM_WRITE_ONLY, byteSizeBufferB);
 
 	// Chargement des données en mémoire video
+	//queue.enqueueWriteBuffer(bufferA, CL_TRUE, 0, byteSizeBuffer, inputMat);
 	queue.enqueueWriteBuffer(bufferA, CL_TRUE, 0, byteSizeBufferA, inputMat);
 	// creation du kernel (fonction à exécuter)
 	cl::Kernel kernel(program, "test_neighbors");
 	// Attribution des paramètres de ce kernel
+	//kernel.setArg(0, nx);
+	//kernel.setArg(1, ny);
 	kernel.setArg(0, nx);
 	kernel.setArg(1, ny);
 	kernel.setArg(2, bufferA);
@@ -418,57 +332,98 @@ void test_GPU(const cl::Program& program, const cl::CommandQueue& queue, const c
 
 	// création de la topologie des processeurs
 	cl::NDRange global(nx, ny); // nombre total d'éléments de calcul -processing elements
-	cl::NDRange local(4, 4); // dimension des unités de calcul -compute units- c'à-dire le nombre d'éléments de calcul par unités de calcul
+	cl::NDRange local(25, 25); // dimension des unités de calcul -compute units- c'à-dire le nombre d'éléments de calcul par unités de calcul
 
 	// lancement du programme en GPU
 	queue.enqueueNDRangeKernel(kernel, cl::NullRange, global, local);
 
 	// recupération du résultat
-	float* out = new float[nx * ny];
-	queue.enqueueReadBuffer(bufferB, CL_TRUE, 0, byteSizeBufferA, out);
+	queue.enqueueReadBuffer(bufferB, CL_TRUE, 0, byteSizeBufferB, dir);
+
+	chrono::time_point<chrono::system_clock> startInt = chrono::system_clock::now();
 
 	for (size_t i = 0; i < nx; i++)
 	{
 		for (size_t j = 0; j < ny; j++)
 		{
-			cout << out[i * nx + j] << " ";
+			dir_cell_data.push_back(new cellData());
 		}
-		cout << endl;
 	}
+
+	for (size_t i = 0; i < nx; i++)
+	{
+		for (size_t j = 0; j < ny; j++)
+		{
+			int from = dir[(i * nx + j) * 2];
+			int to = dir[(i * nx + j) * 2 + 1];
+			if (from != -1 && to != -1)
+				dir_cell_data[to]->source.push_back(dir_cell_data[from]);
+		}
+	}
+
+	chrono::time_point<chrono::system_clock> endInt = chrono::system_clock::now();
+
+	delete[] dir;
+
+	int cmpt = 0;
+
+	while (cmpt < nx * ny) {
+		for (int i = 0; i < nx; i++)
+		{
+			for (int j = 0; j < ny; j++)
+			{
+				if (!dir_cell_data[i * nx + j]->hasFinalValue) {
+					for (int k = dir_cell_data[i * nx + j]->source.size() - 1; k >= 0; k--)
+					{
+						cellData* neightbor = dir_cell_data[i * nx + j]->source[k];
+						if (neightbor->hasFinalValue) {
+							dir_cell_data[i * nx + j]->value += neightbor->value;
+							dir_cell_data[i * nx + j]->source.erase(dir_cell_data[i * nx + j]->source.begin() + k);
+							delete neightbor;
+						}
+					}
+
+					if (dir_cell_data[i * nx + j]->source.empty()) {
+						dir_cell_data[i * nx + j]->hasFinalValue = true;
+						dir_cell_data[i * nx + j]->value += 1;
+						outputMat[i * nx + j] = dir_cell_data[i * nx + j]->value;
+						cmpt += 1;
+					}
+				}
+			}
+		}
+	}
+	
 
 	chrono::time_point<chrono::system_clock> end = chrono::system_clock::now();
 
 	cout << "Résultat GPU" << endl;
 	//print_res(outputMat, nx, ny);
+	cout << "Temps intermediaire GPU: " << calcTime(startInt, endInt) << endl;
 	cout << "Temps execution GPU: " << calcTime(start, end) << endl;
 }
 
 int main() {
-	// pour mesurer le temps
-	chrono::time_point<chrono::system_clock> debut, debut2, fin;
-
-	// création des zone de stockage de données en mémoire centrale
-
-	try { // debut de la zone d'utilisation de l'API pour OpenCL
-		// les plateformes
+	// OpenCL pipeline
+	try {
+		// Plateformes
 		vector<cl::Platform> plateformes;
-		cl::Platform::get(&plateformes); // recherche des plateformes normalement 1 sur un PC
+		cl::Platform::get(&plateformes);
 
-		//les devices
+		// Devices
 		vector<cl::Device> devices;
-		plateformes[0].getDevices(CL_DEVICE_TYPE_ALL, &devices); // recherche des devices (normalement 1)
+		plateformes[0].getDevices(CL_DEVICE_TYPE_ALL, &devices);
 
-		// création d'un contexte pour les devices
+		// Context
 		cl::Context context(devices);
 
-		// création du programme dans le contexte (voir code fonction)
+		// Program
 		cl::Program program = createProgram("ocl.cl", context);
-		// compilation du programme
 		try {
 			program.build(devices);
 		}
 		catch (...) {
-			// Récupération des messages d'erreur au cas où...
+			// Errors
 			cl_int buildErr = CL_SUCCESS;
 			auto buildInfo = program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(devices[0], &buildErr);
 			cerr << buildInfo << endl << endl;
@@ -477,20 +432,27 @@ int main() {
 			exit(0);
 		}
 
-		// création de la file de commandes (ordres de l'hote pour le GPU)
+		// CommandQueue
 		cl::CommandQueue queue = cl::CommandQueue(context, devices[0]);
 
+		// Initialize data
 		loadData();
-		// affichage des données initialisées
 		cout << "Données initialisées" << endl;
-		//printData(inputMat, nx, ny);
 
+		// Calc
 		test_CPU();
 		test_CPU_omp();
 		test_GPU(program, queue, context);
+
+		delete[] inputMat;
+		delete[] outputMat;
+
+#ifdef _WIN32 || _WIN64
 		system("pause");
+#endif
+
 	}
-	catch (cl::Error& err) { // Affichage des erreurs en cas de pb OpenCL
+	catch (cl::Error& err) {
 		cout << "Exception\n";
 		cerr << "ERROR: " << err.what() << "(" << err.err() << ")" << endl;
 		system("pause");

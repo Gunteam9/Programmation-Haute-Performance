@@ -1,5 +1,5 @@
 ﻿  programme_hote.cpp
-C:\Users\romai\Documents\Cours\M2\Programmation-Haute-Performance\OpenCL\Projet\programme_hote.cpp(293,9): warning C4849: OpenMP 'collapse' clause ignored in 'parallel for' directive
-C:\Users\romai\Documents\Cours\M2\Programmation-Haute-Performance\OpenCL\Projet\programme_hote.cpp(502,9): warning C4615: #pragma warning: unknown user warning type
-C:\Users\romai\Documents\Cours\M2\Programmation-Haute-Performance\OpenCL\Projet\programme_hote.cpp(76): warning C4715: 'direction_arrow_converter': not all control paths return a value
+C:\Users\romai\Documents\Cours\M2\Programmation-Haute-Performance\OpenCL\Projet\programme_hote.cpp(202,9): warning C4849: OpenMP 'collapse' clause ignored in 'parallel for' directive
+C:\Users\romai\Documents\Cours\M2\Programmation-Haute-Performance\OpenCL\Projet\programme_hote.cpp(450,1): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+C:\Users\romai\Documents\Cours\M2\Programmation-Haute-Performance\OpenCL\Projet\programme_hote.cpp(464,9): warning C4615: #pragma warning: unknown user warning type
   Projet.vcxproj -> C:\Users\romai\Documents\Cours\M2\Programmation-Haute-Performance\OpenCL\Projet\x64\Release\Projet.exe
