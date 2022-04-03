@@ -25,7 +25,6 @@ struct cellData {
 	vector<cellData*> source;
 	bool hasFinalValue = false;
 	float value = 0;
-	int i, j;
 };
 
 // Utils
